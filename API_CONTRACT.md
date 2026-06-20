@@ -34,6 +34,93 @@ Response (200):
 ### POST /api/auth/logout
 Response (200): { "message": "Logged out" }
 
+## Patients
+
+### GET /api/patients
+
+Response (200)
+
+```json
+{
+  "patients": [
+    {
+      "id": 1,
+      "name": "Ravi Kumar",
+      "age": 45,
+      "gender": "male",
+      "phone": "9876543210",
+      "bloodGroup": "O+",
+      "address": "Chennai",
+      "status": "admitted",
+      "hospitalId": 1
+    }
+  ]
+}
+```
+
+### GET /api/patients/:id
+
+Response (200)
+
+```json
+{
+  "patient": {
+    "id": 1,
+    "name": "Ravi Kumar",
+    "age": 45,
+    "gender": "male",
+    "phone": "9876543210",
+    "bloodGroup": "O+",
+    "address": "Chennai",
+    "status": "admitted",
+    "hospitalId": 1
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Patient not found"
+}
+```
+
+### POST /api/patients
+
+Request
+
+```json
+{
+  "name": "string",
+  "age": 0,
+  "gender": "male|female|other",
+  "phone": "string",
+  "bloodGroup": "string",
+  "address": "string",
+  "status": "admitted|discharged|outpatient"
+}
+```
+
+Response (201)
+
+```json
+{
+  "patient": {
+    "id": 3,
+    "name": "string",
+    "age": 0,
+    "gender": "male|female|other",
+    "phone": "string",
+    "bloodGroup": "string",
+    "address": "string",
+    "status": "admitted|discharged|outpatient",
+    "hospitalId": 1
+  }
+}
+```
+
+
 ## Coming soon (add as we build)
 - /api/patients
 - /api/doctors
