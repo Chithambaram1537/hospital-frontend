@@ -119,6 +119,19 @@ Response (201)
   }
 }
 ```
+## Doctors
+
+### GET /api/doctors
+Response (200):
+{ "doctors": [ { "id": 1, "name": "Dr. Asha Mehta", "specialty": "Cardiology", "phone": "9876512345", "email": "asha.mehta@hospital.com", "experience": 12, "status": "available", "hospitalId": 1 } ] }
+
+### GET /api/doctors/:id
+Response (200): { "doctor": { ...same shape } }
+Response (404): { "message": "Doctor not found" }
+
+### POST /api/doctors
+Request: { "name": "string", "specialty": "string", "phone": "string", "email": "string", "experience": number, "status": "available|on-leave|in-surgery" }
+Response (201): { "doctor": { ...same shape, with generated id } }
 
 
 ## Coming soon (add as we build)

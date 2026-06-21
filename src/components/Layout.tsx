@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import Button from './Button';
 
+
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           >
             Patients
           </Link>
+          <Link to="/doctors" className="text-gray-600 hover:text-primary">Doctors</Link>
         </div>
 
         <div className="flex items-center gap-4">
