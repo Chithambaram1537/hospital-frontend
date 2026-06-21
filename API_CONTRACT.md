@@ -133,6 +133,20 @@ Response (404): { "message": "Doctor not found" }
 Request: { "name": "string", "specialty": "string", "phone": "string", "email": "string", "experience": number, "status": "available|on-leave|in-surgery" }
 Response (201): { "doctor": { ...same shape, with generated id } }
 
+## Appointments
+
+### GET /api/appointments
+Response (200):
+{ "appointments": [ { "id": 1, "patientId": 1, "patientName": "Ravi Kumar", "doctorId": 1, "doctorName": "Dr. Asha Mehta", "date": "2026-06-25", "time": "10:30", "reason": "Chest pain follow-up", "status": "scheduled", "hospitalId": 1 } ] }
+
+### GET /api/appointments/:id
+Response (200): { "appointment": { ...same shape } }
+Response (404): { "message": "Appointment not found" }
+
+### POST /api/appointments
+Request: { "patientId": number, "doctorId": number, "date": "YYYY-MM-DD", "time": "HH:MM", "reason": "string", "status": "scheduled|completed|cancelled" }
+Response (201): { "appointment": { ...same shape, with generated id } }
+
 
 ## Coming soon (add as we build)
 - /api/patients
