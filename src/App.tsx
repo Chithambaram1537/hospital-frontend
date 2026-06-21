@@ -8,6 +8,9 @@ import AddPatient from './pages/patients/AddPatient';
 import DoctorsList from './pages/doctors/DoctorsList';
 import DoctorDetail from './pages/doctors/DoctorDetail';
 import AddDoctor from './pages/doctors/AddDoctor';
+import AppointmentsList from './pages/appointments/AppointmentsList';
+import AppointmentDetail from './pages/appointments/AppointmentDetail';
+import AddAppointment from './pages/appointments/AddAppointment';
 function Dashboard() {
   return <Layout><h1 className="text-2xl font-bold">Dashboard (placeholder)</h1></Layout>;
 }
@@ -23,6 +26,9 @@ export default function App() {
         <Route path="/doctors" element={<ProtectedRoute><DoctorsList /></ProtectedRoute>} />
         <Route path="/doctors/new" element={<ProtectedRoute><AddDoctor /></ProtectedRoute>} />
         <Route path="/doctors/:id" element={<ProtectedRoute><DoctorDetail /></ProtectedRoute>} />
+        <Route path="/appointments" element={<ProtectedRoute><AppointmentsList /></ProtectedRoute>} />
+        <Route path="/appointments/new" element={<ProtectedRoute><AddAppointment /></ProtectedRoute>} />
+        <Route path="/appointments/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

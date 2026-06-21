@@ -35,6 +35,10 @@ export default function Layout({ children }: { children: ReactNode }) {
             Patients
           </Link>
           <Link to="/doctors" className="text-gray-600 hover:text-primary">Doctors</Link>
+
+          <Link to="/appointments" className="text-gray-600 hover:text-primary">
+  Appointments
+</Link>
         </div>
 
         <div className="flex items-center gap-4">
