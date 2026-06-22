@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPatients } from '../../services/patientService';
-import  type { Patient } from '../../types/patient';
+import type { Patient } from '../../types/patient';
 import Layout from '../../components/Layout';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -22,33 +22,103 @@ export default function PatientsList() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Patients</h1>
-        <Button onClick={() => navigate('/patients/new')}>+ Add patient</Button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Patients
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Manage and monitor patient records.
+          </p>
+        </div>
+
+        <Button onClick={() => navigate('/patients/new')}>
+          + Add Patient
+        </Button>
       </div>
-      {error && <Alert variant="error">{error}</Alert>}
-      {isLoading && <p className="text-gray-500">Loading patients...</p>}
+
+      {error && (
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+
+      {isLoading && (
+        <Card>
+          <p className="text-gray-500 text-center py-6">
+            Loading patients...
+          </p>
+        </Card>
+      )}
+
       {!isLoading && !error && (
         <Card>
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-gray-200 text-gray-500 text-sm">
-                <th className="py-2">Name</th><th className="py-2">Age</th>
-                <th className="py-2">Phone</th><th className="py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((p) => (
-                <tr key={p.id} onClick={() => navigate(`/patients/${p.id}`)}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
-                  <td className="py-2">{p.name}</td>
-                  <td className="py-2">{p.age}</td>
-                  <td className="py-2">{p.phone}</td>
-                  <td className="py-2 capitalize">{p.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {patients.length === 0 ? (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold text-gray-700">
+                No Patients Found
+              </h3>
+              <p className="text-gray-500 mt-2">
+                Start by adding your first patient.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-500 text-sm uppercase tracking-wide">
+                    <th className="py-4 px-2">Patient</th>
+                    <th className="py-4 px-2">Age</th>
+                    <th className="py-4 px-2">Phone</th>
+                    <th className="py-4 px-2">Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {patients.map((p) => (
+                    <tr
+                      key={p.id}
+                      onClick={() => navigate(`/patients/${p.id}`)}
+                      className="border-b border-gray-100 hover:bg-blue-50 transition cursor-pointer"
+                    >
+                      <td className="py-4 px-2">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {p.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Patient ID: #{p.id}
+                          </p>
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-2">
+                        {p.age}
+                      </td>
+
+                      <td className="py-4 px-2">
+                        {p.phone}
+                      </td>
+
+                      <td className="py-4 px-2">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            p.status === 'admitted'
+                              ? 'bg-green-100 text-green-700'
+                              : p.status === 'discharged'
+                              ? 'bg-gray-100 text-gray-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
       )}
     </Layout>

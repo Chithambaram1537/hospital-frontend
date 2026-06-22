@@ -12,18 +12,21 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
     setError('');
     setIsSubmitting(true);
+
     try {
       const data = await loginRequest(email, password);
       login(data.token, data.user);
       navigate('/dashboard');
-    } catch (err) {
+    } catch {
       setError('Invalid email or password');
     } finally {
       setIsSubmitting(false);
@@ -31,19 +34,101 @@ export default function Login() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card>
-        <h1 className="text-2xl font-bold mb-1 text-center">Hospital Login</h1>
-        <p className="text-gray-500 text-center mb-6">Please login to continue</p>
-        {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
-        <form onSubmit={handleSubmit}>
-          <Input label="Email" type="email" value={email} onChange={setEmail} />
-          <Input label="Password" type="password" value={password} onChange={setPassword} />
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Logging in...' : 'Login'}
-          </Button>
-        </form>
-      </Card>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-indigo-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl grid md:grid-cols-2 gap-10 items-center">
+
+        {/* Left Side */}
+        <div className="hidden md:block">
+          <h1 className="text-5xl font-bold text-slate-800 mb-4">
+            Hospital Management System
+          </h1>
+
+          <p className="text-lg text-gray-600 mb-6">
+            Manage patients, doctors and appointments from one professional dashboard.
+          </p>
+
+          <div className="space-y-3">
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              ✓ Patient Records Management
+            </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              ✓ Doctor Scheduling
+            </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              ✓ Appointment Tracking
+            </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              ✓ Real-Time Dashboard
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side Login */}
+        <Card>
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4">
+              H
+            </div>
+
+            <h2 className="text-3xl font-bold text-gray-800">
+              Welcome Back
+            </h2>
+
+            <p className="text-gray-500 mt-2">
+              Sign in to continue
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-4">
+              <Alert variant="error">
+                {error}
+              </Alert>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <Input
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="doctor@hospital.com"
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
+            />
+
+            <div className="mt-6">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                size="lg"
+              >
+                {isSubmitting
+                  ? 'Signing In...'
+                  : 'Sign In'}
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            Demo Account:
+            <br />
+            doctor@hospital.com
+            <br />
+            Password: test123
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

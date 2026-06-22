@@ -5,34 +5,84 @@ and backend must match these shapes exactly — if something needs to change,
 update this file first, then tell the team.
 
 ## Conventions
-- All request/response bodies are JSON.
-- All fields are camelCase (e.g. `hospitalId`, not `hospital_id`).
-- Auth token is sent as a header: `Authorization: Bearer <token>`
-- Error format (any failed request):
-  { "message": "Human-readable error description" }
+
+* All request/response bodies are JSON.
+* All fields are camelCase (e.g. `hospitalId`, not `hospital_id`).
+* Auth token is sent as a header: `Authorization: Bearer <token>`
+* Error format (any failed request):
+  `{ "message": "Human-readable error description" }`
+
+---
 
 ## Auth
 
 ### POST /api/auth/login
+
 Request:
-{ "email": "doctor@hospital.com", "password": "test123" }
+
+```json
+{
+  "email": "doctor@hospital.com",
+  "password": "test123"
+}
+```
 
 Response (200):
+
+```json
 {
   "token": "string",
-  "user": { "id": 1, "name": "Dr. Asha Mehta", "email": "doctor@hospital.com", "role": "doctor", "hospitalId": 1 }
+  "user": {
+    "id": 1,
+    "name": "Dr. Asha Mehta",
+    "email": "doctor@hospital.com",
+    "role": "doctor",
+    "hospitalId": 1
+  }
 }
+```
 
-Response (401): { "message": "Invalid credentials" }
+Response (401):
+
+```json
+{
+  "message": "Invalid credentials"
+}
+```
 
 ### GET /api/auth/me
-Headers: Authorization: Bearer <token>
+
+Headers:
+
+```
+Authorization: Bearer <token>
+```
 
 Response (200):
-{ "user": { "id": 1, "name": "Dr. Asha Mehta", "email": "doctor@hospital.com", "role": "doctor", "hospitalId": 1 } }
+
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Dr. Asha Mehta",
+    "email": "doctor@hospital.com",
+    "role": "doctor",
+    "hospitalId": 1
+  }
+}
+```
 
 ### POST /api/auth/logout
-Response (200): { "message": "Logged out" }
+
+Response (200):
+
+```json
+{
+  "message": "Logged out"
+}
+```
+
+---
 
 ## Patients
 
@@ -119,36 +169,273 @@ Response (201)
   }
 }
 ```
+
+### PUT /api/patients/:id
+
+Request: same shape as POST
+
+Response (200)
+
+```json
+{
+  "patient": {
+    "...updated patient object"
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Patient not found"
+}
+```
+
+### DELETE /api/patients/:id
+
+Response (200)
+
+```json
+{
+  "message": "Patient deleted"
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Patient not found"
+}
+```
+
+---
+
 ## Doctors
 
 ### GET /api/doctors
-Response (200):
-{ "doctors": [ { "id": 1, "name": "Dr. Asha Mehta", "specialty": "Cardiology", "phone": "9876512345", "email": "asha.mehta@hospital.com", "experience": 12, "status": "available", "hospitalId": 1 } ] }
+
+Response (200)
+
+```json
+{
+  "doctors": [
+    {
+      "id": 1,
+      "name": "Dr. Asha Mehta",
+      "specialty": "Cardiology",
+      "phone": "9876512345",
+      "email": "asha.mehta@hospital.com",
+      "experience": 12,
+      "status": "available",
+      "hospitalId": 1
+    }
+  ]
+}
+```
 
 ### GET /api/doctors/:id
-Response (200): { "doctor": { ...same shape } }
-Response (404): { "message": "Doctor not found" }
+
+Response (200)
+
+```json
+{
+  "doctor": {
+    "...same shape"
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Doctor not found"
+}
+```
 
 ### POST /api/doctors
-Request: { "name": "string", "specialty": "string", "phone": "string", "email": "string", "experience": number, "status": "available|on-leave|in-surgery" }
-Response (201): { "doctor": { ...same shape, with generated id } }
+
+Request
+
+```json
+{
+  "name": "string",
+  "specialty": "string",
+  "phone": "string",
+  "email": "string",
+  "experience": 0,
+  "status": "available|on-leave|in-surgery"
+}
+```
+
+Response (201)
+
+```json
+{
+  "doctor": {
+    "...same shape with generated id"
+  }
+}
+```
+
+### PUT /api/doctors/:id
+
+Request: same shape as POST
+
+Response (200)
+
+```json
+{
+  "doctor": {
+    "...updated doctor object"
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Doctor not found"
+}
+```
+
+### DELETE /api/doctors/:id
+
+Response (200)
+
+```json
+{
+  "message": "Doctor deleted"
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Doctor not found"
+}
+```
+
+---
 
 ## Appointments
 
 ### GET /api/appointments
-Response (200):
-{ "appointments": [ { "id": 1, "patientId": 1, "patientName": "Ravi Kumar", "doctorId": 1, "doctorName": "Dr. Asha Mehta", "date": "2026-06-25", "time": "10:30", "reason": "Chest pain follow-up", "status": "scheduled", "hospitalId": 1 } ] }
+
+Response (200)
+
+```json
+{
+  "appointments": [
+    {
+      "id": 1,
+      "patientId": 1,
+      "patientName": "Ravi Kumar",
+      "doctorId": 1,
+      "doctorName": "Dr. Asha Mehta",
+      "date": "2026-06-25",
+      "time": "10:30",
+      "reason": "Chest pain follow-up",
+      "status": "scheduled",
+      "hospitalId": 1
+    }
+  ]
+}
+```
 
 ### GET /api/appointments/:id
-Response (200): { "appointment": { ...same shape } }
-Response (404): { "message": "Appointment not found" }
+
+Response (200)
+
+```json
+{
+  "appointment": {
+    "...same shape"
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Appointment not found"
+}
+```
 
 ### POST /api/appointments
-Request: { "patientId": number, "doctorId": number, "date": "YYYY-MM-DD", "time": "HH:MM", "reason": "string", "status": "scheduled|completed|cancelled" }
-Response (201): { "appointment": { ...same shape, with generated id } }
 
+Request
+
+```json
+{
+  "patientId": 0,
+  "doctorId": 0,
+  "date": "YYYY-MM-DD",
+  "time": "HH:MM",
+  "reason": "string",
+  "status": "scheduled|completed|cancelled"
+}
+```
+
+Response (201)
+
+```json
+{
+  "appointment": {
+    "...same shape with generated id"
+  }
+}
+```
+
+### PUT /api/appointments/:id
+
+Request: same shape as POST
+
+Response (200)
+
+```json
+{
+  "appointment": {
+    "...updated appointment object"
+  }
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Appointment not found"
+}
+```
+
+### DELETE /api/appointments/:id
+
+Response (200)
+
+```json
+{
+  "message": "Appointment deleted"
+}
+```
+
+Response (404)
+
+```json
+{
+  "message": "Appointment not found"
+}
+```
+
+---
 
 ## Coming soon (add as we build)
-- /api/patients
-- /api/doctors
-- /api/appointments
+
+* /api/patients
+* /api/doctors
+* /api/appointments

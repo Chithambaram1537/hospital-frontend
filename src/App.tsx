@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import ProtectedRoute from './routes/ProtectedRoute';
-import Layout from './components/Layout';
 import PatientsList from './pages/patients/PatientsList';
 import PatientDetail from './pages/patients/PatientDetail';
 import AddPatient from './pages/patients/AddPatient';
@@ -11,9 +10,7 @@ import AddDoctor from './pages/doctors/AddDoctor';
 import AppointmentsList from './pages/appointments/AppointmentsList';
 import AppointmentDetail from './pages/appointments/AppointmentDetail';
 import AddAppointment from './pages/appointments/AddAppointment';
-function Dashboard() {
-  return <Layout><h1 className="text-2xl font-bold">Dashboard (placeholder)</h1></Layout>;
-}
+import Dashboard from './pages/Dashboard';
 export default function App() {
   return (
     <BrowserRouter>

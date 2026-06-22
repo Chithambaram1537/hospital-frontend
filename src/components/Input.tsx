@@ -16,8 +16,8 @@ export default function Input({
   error,
 }: InputProps) {
   return (
-    <div className="mb-4 w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="mb-5 w-full">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
         {label}
       </label>
 
@@ -26,15 +26,28 @@ export default function Input({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-          error
-            ? "border-red-500 focus:ring-red-500"
-            : "border-gray-300 focus:ring-blue-500"
-        }`}
+        className={`
+          w-full
+          px-4
+          py-3
+          rounded-xl
+          border
+          bg-white
+          shadow-sm
+          transition-all
+          duration-200
+          focus:outline-none
+          focus:ring-4
+          ${
+            error
+              ? "border-red-500 focus:ring-red-100"
+              : "border-gray-200 focus:ring-blue-100 focus:border-blue-500"
+          }
+        `}
       />
 
       {error && (
-        <p className="text-red-500 text-sm mt-1">
+        <p className="text-red-500 text-sm mt-2">
           {error}
         </p>
       )}
