@@ -15,3 +15,11 @@ export async function createAppointment(data: CreateAppointmentRequest): Promise
   const response = await api.post<AppointmentResponse>('/appointments', data);
   return response.data.appointment;
 }
+export async function updateAppointment(id: string, data: CreateAppointmentRequest): Promise<Appointment> {
+  const response = await api.put<AppointmentResponse>(`/appointments/${id}`, data);
+  return response.data.appointment;
+}
+
+export async function deleteAppointment(id: string): Promise<void> {
+  await api.delete(`/appointments/${id}`);
+}

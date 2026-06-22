@@ -15,3 +15,11 @@ export async function createDoctor(data: CreateDoctorRequest): Promise<Doctor> {
   const response = await api.post<DoctorResponse>('/doctors', data);
   return response.data.doctor;
 }
+export async function updateDoctor(id: string, data: CreateDoctorRequest): Promise<Doctor> {
+  const response = await api.put<DoctorResponse>(`/doctors/${id}`, data);
+  return response.data.doctor;
+}
+
+export async function deleteDoctor(id: string): Promise<void> {
+  await api.delete(`/doctors/${id}`);
+}

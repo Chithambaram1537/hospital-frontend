@@ -22,3 +22,11 @@ export async function createPatient(
   const response = await api.post<PatientResponse>('/patients', data);
   return response.data.patient;
 }
+export async function updatePatient(id: string, data: CreatePatientRequest): Promise<Patient> {
+  const response = await api.put<PatientResponse>(`/patients/${id}`, data);
+  return response.data.patient;
+}
+
+export async function deletePatient(id: string): Promise<void> {
+  await api.delete(`/patients/${id}`);
+}
