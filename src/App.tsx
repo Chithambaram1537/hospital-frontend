@@ -23,6 +23,7 @@ import AppointmentDetail from './pages/appointments/AppointmentDetail';
 import AddAppointment from './pages/appointments/AddAppointment';
 import EditAppointment from './pages/appointments/EditAppointment';
 
+import Queue from './pages/Queue';
 
 export default function App() {
   return (
@@ -151,7 +152,7 @@ export default function App() {
           }
         />
         
-
+        <Route path="/queue" element={<ProtectedRoute><Queue /></ProtectedRoute>} />
 
         <Route path="/" element={<Navigate to="/login" />} />
 

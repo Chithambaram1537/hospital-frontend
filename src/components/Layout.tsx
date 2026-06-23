@@ -6,6 +6,7 @@ import Button from './Button';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/queue', label: 'Queue' },
   { to: '/patients', label: 'Patients' },
   { to: '/doctors', label: 'Doctors' },
   { to: '/appointments', label: 'Appointments' },
@@ -51,8 +52,10 @@ export default function Layout({ children }: { children: ReactNode }) {
                 }`}
               >
                 {item.label}
+
               </Link>
             );
+            
           })}
         </nav>
         <div className="border-t border-gray-200 p-4">
