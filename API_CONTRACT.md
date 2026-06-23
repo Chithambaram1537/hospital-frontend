@@ -439,6 +439,24 @@ Request: { "status": "waiting|called|completed" }
 Response (200): { "entry": { ...updated } }
 Response (404): { "message": "Queue entry not found" }
 
+## Hospitals
+### GET /api/hospitals
+Response (200): { "hospitals": [ { "id": 1, "name": "City General Hospital" } ] }
+
+## Auth (additions)
+### POST /api/auth/register
+Request: { "name", "email", "password", "phone", "age", "gender", "bloodGroup", "address" }
+Response (201): { "token", "user" } — same shape as login, role always "patient"
+
+### POST /api/auth/forgot-password
+Request: { "email" } → Response (200): { "message": "OTP sent" }
+
+### POST /api/auth/verify-otp
+Request: { "email", "otp" } → Response (200/401)
+
+### POST /api/auth/reset-password
+Request: { "email", "otp", "newPassword" } → Response (200/401)
+
 Response (404)
 
 ```json

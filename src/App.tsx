@@ -18,6 +18,8 @@ import EditAppointment from './pages/appointments/EditAppointment';
 import MyAppointments from './pages/my/MyAppointments';
 import MyVisits from './pages/my/MyVisits';
 import MyProfile from './pages/my/MyProfile';
+import PatientDashboard from './pages/patients/PatientDashboard';
+
 
 const STAFF = ['admin', 'doctor'];
 
@@ -48,6 +50,14 @@ export default function App() {
         <Route path="/my/appointments" element={<ProtectedRoute allowedRoles={['patient']}><MyAppointments /></ProtectedRoute>} />
         <Route path="/my/visits" element={<ProtectedRoute allowedRoles={['patient']}><MyVisits /></ProtectedRoute>} />
         <Route path="/my/profile" element={<ProtectedRoute allowedRoles={['patient']}><MyProfile /></ProtectedRoute>} />
+        <Route
+  path="/patient-dashboard"
+  element={
+    <ProtectedRoute>
+      <PatientDashboard />
+    </ProtectedRoute>
+  }
+/>
 
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
