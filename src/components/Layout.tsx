@@ -1,72 +1,78 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import Button from './Button';
+
+const NAV_ITEMS = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/patients', label: 'Patients' },
+  { to: '/doctors', label: 'Doctors' },
+  { to: '/appointments', label: 'Appointments' },
+];
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleLogout() {
     logout();
     navigate('/login');
   }
 
-  const navItem = (path: string, label: string) => (
-    <Link
-      to={path}
-      className={`block px-4 py-3 rounded-lg transition ${
-        location.pathname.startsWith(path)
-          ? 'bg-blue-600 text-white'
-          : 'text-gray-700 hover:bg-gray-100'
-      }`}
-    >
-      {label}
-    </Link>
-  );
+  const currentLabel = NAV_ITEMS.find((item) => location.pathname.startsWith(item.to))?.label ?? '';
 
   return (
-<div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-blue-600">
-            Hospital MS
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Management System
-          </p>
+    <div className="min-h-screen flex bg-surface">
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 z-20 md:hidden" onClick={() => setIsMenuOpen(false)} />
+      )}
+
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-30 w-60 bg-white border-r border-gray-200 flex flex-col shrink-0 transition-transform duration-200 ${
+          isMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div className="h-16 flex items-center px-6 border-b border-gray-200">
+          <span className="font-semibold text-primary">Hospital MS</span>
         </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {navItem('/dashboard', 'Dashboard')}
-          {navItem('/patients', 'Patients')}
-          {navItem('/doctors', 'Doctors')}
-          {navItem('/appointments', 'Appointments')}
+        <nav className="flex-1 py-4">
+          {NAV_ITEMS.map((item) => {
+            const active = location.pathname.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center px-6 py-2.5 text-sm font-medium border-l-4 transition ${
+                  active ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-
-        <div className="p-4 border-t">
-          <p className="text-sm text-gray-500 mb-3">
-            {user?.name}
-          </p>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
+        <div className="border-t border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+          <p className="text-xs text-gray-500 capitalize mb-3">{user?.role}</p>
+          <Button variant="secondary" size="sm" fullWidth onClick={handleLogout}>Logout</Button>
         </div>
       </aside>
 
-      {/* Content */}
-      <main className="flex-1 overflow-auto">
-  <div className="max-w-7xl mx-auto p-8">
-    {children}
-  </div>
-</main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-8 gap-3">
+          <button onClick={() => setIsMenuOpen(true)} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900" aria-label="Open menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h2 className="text-base font-semibold text-gray-900">{currentLabel}</h2>
+        </header>
+        <main className="flex-1 p-4 md:p-8">{children}</main>
+      </div>
     </div>
   );
 }

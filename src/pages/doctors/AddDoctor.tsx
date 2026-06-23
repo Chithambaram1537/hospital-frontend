@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createDoctor } from '../../services/doctorService';
+import toast from 'react-hot-toast';
 import Layout from '../../components/Layout';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
@@ -43,9 +44,10 @@ export default function AddDoctor() {
         experience: Number(experience),
         status: status as 'available' | 'on-leave' | 'in-surgery',
       });
-      navigate('/doctors');
+      toast.success('Doctor added successfully');
+navigate('/Doctor');
     } catch {
-      setError('Could not save doctor');
+      toast.error('Failed to save Doctor');
     } finally {
       setIsSubmitting(false);
     }

@@ -11,6 +11,7 @@ export default function AppointmentsList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,13 @@ export default function AppointmentsList() {
       .catch(() => setError('Could not load appointments'))
       .finally(() => setIsLoading(false));
   }, []);
+
+  const filteredAppointments = appointments.filter(
+    (a) =>
+      a.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Layout>
@@ -37,6 +45,17 @@ export default function AppointmentsList() {
         </Button>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by patient, doctor or status..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
       {error && (
         <div className="mb-4">
           <Alert variant="error">{error}</Alert>
@@ -53,13 +72,13 @@ export default function AppointmentsList() {
 
       {!isLoading && !error && (
         <Card>
-          {appointments.length === 0 ? (
+          {filteredAppointments.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-700">
                 No Appointments Found
               </h3>
               <p className="text-gray-500 mt-2">
-                Start by scheduling your first appointment.
+                Try another search keyword.
               </p>
             </div>
           ) : (
@@ -76,7 +95,7 @@ export default function AppointmentsList() {
                 </thead>
 
                 <tbody>
-                  {appointments.map((a) => (
+                  {filteredAppointments.map((a) => (
                     <tr
                       key={a.id}
                       onClick={() => navigate(`/appointments/${a.id}`)}

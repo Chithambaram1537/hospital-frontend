@@ -11,6 +11,7 @@ export default function DoctorsList() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,13 @@ export default function DoctorsList() {
       .catch(() => setError('Could not load doctors'))
       .finally(() => setIsLoading(false));
   }, []);
+
+  const filteredDoctors = doctors.filter(
+    (d) =>
+      d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.phone.includes(searchTerm)
+  );
 
   return (
     <Layout>
@@ -37,6 +45,17 @@ export default function DoctorsList() {
         </Button>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by doctor name, specialty or phone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
       {error && (
         <div className="mb-4">
           <Alert variant="error">{error}</Alert>
@@ -53,13 +72,13 @@ export default function DoctorsList() {
 
       {!isLoading && !error && (
         <Card>
-          {doctors.length === 0 ? (
+          {filteredDoctors.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-700">
                 No Doctors Found
               </h3>
               <p className="text-gray-500 mt-2">
-                Start by adding your first doctor.
+                Try another search keyword.
               </p>
             </div>
           ) : (
@@ -75,7 +94,7 @@ export default function DoctorsList() {
                 </thead>
 
                 <tbody>
-                  {doctors.map((d) => (
+                  {filteredDoctors.map((d) => (
                     <tr
                       key={d.id}
                       onClick={() => navigate(`/doctors/${d.id}`)}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { createPatient } from '../../services/patientService';
 import Layout from '../../components/Layout';
 import Input from '../../components/Input';
@@ -51,9 +52,10 @@ export default function AddPatient() {
         status: status as 'admitted' | 'discharged' | 'outpatient',
       });
 
-      navigate('/patients');
+      toast.success('Patient added successfully');
+navigate('/patients');
     } catch {
-      setError('Could not save patient');
+      toast.error('Failed to save patient');
     } finally {
       setIsSubmitting(false);
     }

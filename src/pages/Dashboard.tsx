@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,10 +35,12 @@ export default function Dashboard() {
         setDoctors(d);
         setAppointments(a);
       })
-      .catch(() =>
-        setError('Could not load dashboard data')
-      )
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        setError('Could not load dashboard data');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const admittedCount = patients.filter(
@@ -64,15 +67,39 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Hospital Dashboard
+      {/* Welcome Banner */}
+
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 text-white mb-8 shadow-xl">
+        <h1 className="text-4xl font-bold mb-2">
+          Welcome Back 👋
         </h1>
 
-        <p className="text-gray-500 mt-2">
-          Monitor patients, doctors and appointments
-          in real time.
+        <p className="text-blue-100 text-lg">
+          Monitor patients, doctors and appointments in real time.
         </p>
+
+        <div className="flex flex-wrap gap-3 mt-6">
+          <button
+            onClick={() => navigate('/patients/new')}
+            className="bg-white text-blue-600 px-5 py-2 rounded-xl font-semibold hover:bg-blue-50 transition"
+          >
+            Add Patient
+          </button>
+
+          <button
+            onClick={() => navigate('/doctors/new')}
+            className="bg-white text-indigo-600 px-5 py-2 rounded-xl font-semibold hover:bg-indigo-50 transition"
+          >
+            Add Doctor
+          </button>
+
+          <button
+            onClick={() => navigate('/appointments/new')}
+            className="bg-white text-purple-600 px-5 py-2 rounded-xl font-semibold hover:bg-purple-50 transition"
+          >
+            Add Appointment
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -83,6 +110,8 @@ export default function Dashboard() {
 
       {!error && (
         <>
+          {/* Stats */}
+
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             <StatCard
               label="Total Patients"
@@ -107,83 +136,121 @@ export default function Dashboard() {
             />
           </div>
 
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Today's Appointments
-                </h2>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Today's Appointments */}
 
-                <p className="text-sm text-gray-500 mt-1">
-                  Scheduled consultations for today
-                </p>
-              </div>
+            <div className="lg:col-span-2">
+              <Card>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Today's Appointments
+                    </h2>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      Scheduled consultations for today
+                    </p>
+                  </div>
+                </div>
+
+                {todaysAppointments.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="text-gray-500">
+                      No appointments scheduled for today.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="px-4 py-4 text-left text-xs font-semibold uppercase text-gray-500">
+                            Patient
+                          </th>
+
+                          <th className="px-4 py-4 text-left text-xs font-semibold uppercase text-gray-500">
+                            Doctor
+                          </th>
+
+                          <th className="px-4 py-4 text-left text-xs font-semibold uppercase text-gray-500">
+                            Time
+                          </th>
+
+                          <th className="px-4 py-4 text-left text-xs font-semibold uppercase text-gray-500">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {todaysAppointments.map((a) => (
+                          <tr
+                            key={a.id}
+                            onClick={() =>
+                              navigate(`/appointments/${a.id}`)
+                            }
+                            className="border-b border-gray-100 hover:bg-blue-50 transition cursor-pointer"
+                          >
+                            <td className="px-4 py-4 font-medium">
+                              {a.patientName}
+                            </td>
+
+                            <td className="px-4 py-4">
+                              {a.doctorName}
+                            </td>
+
+                            <td className="px-4 py-4">
+                              {a.time}
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                  a.status === 'scheduled'
+                                    ? 'bg-green-100 text-green-700'
+                                    : a.status === 'completed'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-red-100 text-red-700'
+                                }`}
+                              >
+                                {a.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
             </div>
 
-            {todaysAppointments.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-gray-500">
-                  No appointments scheduled for today.
-                </p>
+            {/* Recent Activity */}
+
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-5">
+                Recent Activity
+              </h2>
+
+              <div className="space-y-4">
+                <div className="p-3 rounded-xl bg-green-50">
+                  ✅ New patient registered
+                </div>
+
+                <div className="p-3 rounded-xl bg-blue-50">
+                  🩺 Doctor profile updated
+                </div>
+
+                <div className="p-3 rounded-xl bg-purple-50">
+                  📅 Appointment scheduled
+                </div>
+
+                <div className="p-3 rounded-xl bg-yellow-50">
+                  🏥 Hospital records synchronized
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Patient
-                      </th>
-
-                      <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Doctor
-                      </th>
-
-                      <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Time
-                      </th>
-
-                      <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {todaysAppointments.map((a) => (
-                      <tr
-                        key={a.id}
-                        onClick={() =>
-                          navigate(
-                            `/appointments/${a.id}`
-                          )
-                        }
-                        className="border-b border-gray-100 hover:bg-blue-50 transition cursor-pointer"
-                      >
-                        <td className="px-4 py-4 font-medium text-gray-900">
-                          {a.patientName}
-                        </td>
-
-                        <td className="px-4 py-4 text-gray-700">
-                          {a.doctorName}
-                        </td>
-
-                        <td className="px-4 py-4">
-                          {a.time}
-                        </td>
-
-                        <td className="px-4 py-4">
-                          <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                            {a.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Card>
+            </Card>
+          </div>
         </>
       )}
     </Layout>

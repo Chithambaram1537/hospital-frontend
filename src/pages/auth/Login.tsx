@@ -34,7 +34,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-indigo-100 flex items-center justify-center p-6">
+<div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl grid md:grid-cols-2 gap-10 items-center">
 
         {/* Left Side */}
@@ -69,9 +69,9 @@ export default function Login() {
         {/* Right Side Login */}
         <Card>
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4">
-              H
-            </div>
+           <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-lg mb-4">
+  🏥
+</div>
 
             <h2 className="text-3xl font-bold text-gray-800">
               Welcome Back
@@ -120,13 +120,16 @@ export default function Login() {
             </div>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-6 text-center text-sm text-gray-500 bg-gray-50 rounded-xl p-4 border">
             Demo Account:
             <br />
             doctor@hospital.com
             <br />
             Password: test123
           </div>
+          <div className="mt-6 pt-4 border-t text-xs text-gray-400">
+  Hospital Management System v1.0
+</div>
         </Card>
       </div>
     </div>

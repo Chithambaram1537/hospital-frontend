@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createAppointment } from '../../services/appointmentService';
 import { getPatients } from '../../services/patientService';
 import { getDoctors } from '../../services/doctorService';
+import toast from 'react-hot-toast';
 import type { Patient } from '../../types/patient';
 import type { Doctor } from '../../types/doctor';
 import Layout from '../../components/Layout';
@@ -47,9 +48,10 @@ export default function AddAppointment() {
         date, time, reason,
         status: status as 'scheduled' | 'completed' | 'cancelled',
       });
-      navigate('/appointments');
+      toast.success('Appointment added successfully');
+navigate('/Appointments');
     } catch {
-      setError('Could not save appointment');
+      toast.error('Failed to save Appointment');
     } finally {
       setIsSubmitting(false);
     }

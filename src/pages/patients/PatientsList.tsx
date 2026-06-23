@@ -11,6 +11,8 @@ export default function PatientsList() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +22,12 @@ export default function PatientsList() {
       .finally(() => setIsLoading(false));
   }, []);
 
+  const filteredPatients = patients.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.phone.includes(searchTerm)
+  );
+
   return (
     <Layout>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -27,6 +35,7 @@ export default function PatientsList() {
           <h1 className="text-3xl font-bold text-gray-900">
             Patients
           </h1>
+
           <p className="text-gray-500 mt-1">
             Manage and monitor patient records.
           </p>
@@ -35,6 +44,17 @@ export default function PatientsList() {
         <Button onClick={() => navigate('/patients/new')}>
           + Add Patient
         </Button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by name or phone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
 
       {error && (
@@ -53,13 +73,14 @@ export default function PatientsList() {
 
       {!isLoading && !error && (
         <Card>
-          {patients.length === 0 ? (
+          {filteredPatients.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-700">
                 No Patients Found
               </h3>
+
               <p className="text-gray-500 mt-2">
-                Start by adding your first patient.
+                Try a different search term.
               </p>
             </div>
           ) : (
@@ -75,7 +96,7 @@ export default function PatientsList() {
                 </thead>
 
                 <tbody>
-                  {patients.map((p) => (
+                  {filteredPatients.map((p) => (
                     <tr
                       key={p.id}
                       onClick={() => navigate(`/patients/${p.id}`)}
@@ -86,6 +107,7 @@ export default function PatientsList() {
                           <p className="font-medium text-gray-900">
                             {p.name}
                           </p>
+
                           <p className="text-xs text-gray-500">
                             Patient ID: #{p.id}
                           </p>
