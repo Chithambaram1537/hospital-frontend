@@ -4,6 +4,7 @@ export interface User {
   email: string;
   role: string;
   hospitalId: number;
+  patientId?: number;
 }
 
 export interface LoginResponse {

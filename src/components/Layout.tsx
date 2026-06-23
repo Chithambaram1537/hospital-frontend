@@ -4,12 +4,18 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import Button from './Button';
 
-const NAV_ITEMS = [
+const STAFF_NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/queue', label: 'Queue' },
   { to: '/patients', label: 'Patients' },
   { to: '/doctors', label: 'Doctors' },
   { to: '/appointments', label: 'Appointments' },
+];
+
+const PATIENT_NAV_ITEMS = [
+  { to: '/my/appointments', label: 'My appointments' },
+  { to: '/my/visits', label: 'Visit history' },
+  { to: '/my/profile', label: 'My profile' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -23,7 +29,8 @@ export default function Layout({ children }: { children: ReactNode }) {
     navigate('/login');
   }
 
-  const currentLabel = NAV_ITEMS.find((item) => location.pathname.startsWith(item.to))?.label ?? '';
+  const navItems = user?.role === 'patient' ? PATIENT_NAV_ITEMS : STAFF_NAV_ITEMS;
+  const currentLabel = navItems.find((item) => location.pathname.startsWith(item.to))?.label ?? '';
 
   return (
     <div className="min-h-screen flex bg-surface">
@@ -40,7 +47,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <span className="font-semibold text-primary">Hospital MS</span>
         </div>
         <nav className="flex-1 py-4">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active = location.pathname.startsWith(item.to);
             return (
               <Link
@@ -52,10 +59,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                 }`}
               >
                 {item.label}
-
               </Link>
             );
-            
           })}
         </nav>
         <div className="border-t border-gray-200 p-4">

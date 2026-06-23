@@ -25,7 +25,7 @@ export default function Login() {
     try {
       const data = await loginRequest(email, password);
       login(data.token, data.user);
-      navigate('/dashboard');
+      navigate(data.user.role === 'patient' ? '/my/appointments' : '/dashboard');
     } catch {
       setError('Invalid email or password');
     } finally {

@@ -41,6 +41,7 @@ Response (200):
   }
 }
 ```
+Note: `user.patientId` is present only for accounts with role "patient" and links the login to a patient record.
 
 Response (401):
 
