@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate , Toaster } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
 
 import Login from './pages/auth/Login';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -150,10 +150,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Toaster
-    position="top-right"
-    reverseOrder={false}
-  />
+        
 
 
         <Route path="/" element={<Navigate to="/login" />} />
