@@ -423,6 +423,20 @@ Response (200)
   "message": "Appointment deleted"
 }
 ```
+## Queue
+
+### GET /api/queue
+Response (200):
+{ "queue": [ { "id": 1, "tokenNumber": 1, "patientName": "Lakshmi Narayan", "priority": "normal", "status": "waiting", "checkedInAt": "2026-06-23T09:12:00.000Z", "hospitalId": 1 } ] }
+
+### POST /api/queue
+Request: { "patientName": "string", "priority": "normal|emergency" }
+Response (201): { "entry": { ...same shape, with generated id, tokenNumber, status "waiting" } }
+
+### PUT /api/queue/:id
+Request: { "status": "waiting|called|completed" }
+Response (200): { "entry": { ...updated } }
+Response (404): { "message": "Queue entry not found" }
 
 Response (404)
 
