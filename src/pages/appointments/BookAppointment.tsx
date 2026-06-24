@@ -165,7 +165,7 @@ export default function BookAppointment() {
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto pb-24">
         <h1 className="text-2xl font-bold mb-1">Book appointment</h1>
         <p className="text-gray-500 text-sm mb-6">Step {stepIndex + 1} of {STEPS.length}</p>
 
@@ -256,15 +256,18 @@ export default function BookAppointment() {
             </div>
           )}
 
-          <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
-            <Button variant="secondary" onClick={handleBack} disabled={stepIndex === 0}>Back</Button>
-            {currentStep === 'review' ? (
-              <Button onClick={handleConfirm} disabled={isSubmitting}>{isSubmitting ? 'Booking...' : 'Confirm booking'}</Button>
-            ) : (
-              <Button onClick={handleNext} disabled={!canGoNext()}>Next</Button>
-            )}
-          </div>
-        </Card>
+          </Card>
+      </div>
+
+      <div className="sticky bottom-0 z-10 bg-white border-t border-gray-200 -mx-4 md:-mx-8 px-4 md:px-8 py-4">
+        <div className="max-w-lg mx-auto flex justify-between">
+          <Button variant="secondary" onClick={handleBack} disabled={stepIndex === 0}>Back</Button>
+          {currentStep === 'review' ? (
+            <Button onClick={handleConfirm} disabled={isSubmitting}>{isSubmitting ? 'Booking...' : 'Confirm booking'}</Button>
+          ) : (
+            <Button onClick={handleNext} disabled={!canGoNext()}>Next</Button>
+          )}
+        </div>
       </div>
     </Layout>
   );
