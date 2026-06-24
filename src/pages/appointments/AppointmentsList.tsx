@@ -40,9 +40,7 @@ export default function AppointmentsList() {
           </p>
         </div>
 
-        <Button onClick={() => navigate('/appointments/new')}>
-          + Add Appointment
-        </Button>
+        <Button onClick={() => navigate('/appointments/book')}>+ Book appointment</Button>
       </div>
 
       {/* Search Bar */}

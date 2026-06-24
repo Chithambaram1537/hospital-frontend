@@ -5,16 +5,10 @@ interface InputProps {
   type?: string;
   placeholder?: string;
   error?: string;
+  min?: string;
 }
 
-export default function Input({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-  error,
-}: InputProps) {
+export default function Input({ label, value, onChange, type = 'text', placeholder, error, min }: InputProps)  {
   return (
     <div className="mb-5 w-full">
       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -26,6 +20,7 @@ export default function Input({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
+        min={min}
         className={`
           w-full
           px-4
