@@ -457,6 +457,16 @@ Request: { "email", "otp" } → Response (200/401)
 ### POST /api/auth/reset-password
 Request: { "email", "otp", "newPassword" } → Response (200/401)
 
+### Appointment (additions — sent via partial PUT)
+chiefComplaint?: string
+diagnosis?: string
+vitals?: { bp, temperature, weight, oxygen }
+prescriptions?: [{ medicine, dosage, frequency }]
+
+Note: PUT /api/appointments/:id is a partial merge — sending only the changed
+fields preserves everything else already stored. The real backend should
+match this behavior (PATCH semantics), not require the full object every time.
+
 Response (404)
 
 ```json
