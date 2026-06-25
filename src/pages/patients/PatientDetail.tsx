@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, deletePatient } from '../../services/patientService';
+import { getAppointments } from '../../services/appointmentService';
 import type { Patient } from '../../types/patient';
+import type { Appointment } from '../../types/appointment';
 import Layout from '../../components/Layout';
 import Card from '../../components/Card';
 import Alert from '../../components/Alert';
 import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
+import HealthTimeline from '../../components/HealthTimeline';
 
 export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getPatientById(id).then(setPatient).catch(() => setError('Could not load patient'));
+    getAppointments().then((all) => setAppointments(all.filter((a) => String(a.patientId) === id))).catch(() => {});
   }, [id]);
 
   async function handleDelete() {
@@ -55,9 +60,16 @@ export default function PatientDetail() {
             <div><span className="text-gray-500 text-sm">Phone</span><p>{patient.phone}</p></div>
             <div><span className="text-gray-500 text-sm">Blood group</span><p>{patient.bloodGroup}</p></div>
             <div className="col-span-2"><span className="text-gray-500 text-sm">Address</span><p>{patient.address}</p></div>
-            <div><span className="text-gray-500 text-sm">Status</span><div className="mt-1"><StatusBadge status={patient.status} /></div></div>
+           <div><span className="text-gray-500 text-sm">Status</span><div className="mt-1"><StatusBadge status={patient.status} /></div></div>
           </div>
         </Card>
+      )}
+
+      {patient && (
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold mb-4">Medical history</h2>
+          <HealthTimeline appointments={appointments} />
+        </div>
       )}
     </Layout>
   );

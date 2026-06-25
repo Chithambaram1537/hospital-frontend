@@ -1,6 +1,5 @@
 import api from './api';
-import type { Appointment, AppointmentListResponse, AppointmentResponse, CreateAppointmentRequest } from '../types/appointment';
-
+import type { Appointment, AppointmentListResponse, AppointmentResponse, CreateAppointmentRequest, ConsultationNotesRequest } from '../types/appointment';
 export async function getAppointments(): Promise<Appointment[]> {
   const response = await api.get<AppointmentListResponse>('/appointments');
   return response.data.appointments;
@@ -22,4 +21,9 @@ export async function updateAppointment(id: string, data: CreateAppointmentReque
 
 export async function deleteAppointment(id: string): Promise<void> {
   await api.delete(`/appointments/${id}`);
+}
+
+export async function addConsultationNotes(id: string, data: ConsultationNotesRequest): Promise<Appointment> {
+  const response = await api.put<AppointmentResponse>(`/appointments/${id}`, data);
+  return response.data.appointment;
 }
