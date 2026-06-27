@@ -24,6 +24,14 @@ import EditAppointment from './pages/appointments/EditAppointment';
 import MyAppointments from './pages/my/MyAppointments';
 import MyVisits from './pages/my/MyVisits';
 import MyProfile from './pages/my/MyProfile';
+import MyLabResults from './pages/my/MyLabResults';
+import MyPrescriptions from './pages/my/MyPrescriptions';
+import MyInvoices from './pages/my/MyInvoices';
+import LabResultsList from './pages/lab/LabResultsList';
+import LabResultDetail from './pages/lab/LabResultDetail';
+import PharmacyStock from './pages/pharmacy/PharmacyStock';
+import InvoicesList from './pages/billing/InvoicesList';
+import InvoiceDetail from './pages/billing/InvoiceDetail';
 import PatientDashboard from './pages/patients/PatientDashboard';
 
 
@@ -59,8 +67,19 @@ export default function App() {
 
 <Route path="/my/book" element={<ProtectedRoute allowedRoles={['patient']}><BookAppointment /></ProtectedRoute>} />
         <Route path="/my/appointments" element={<ProtectedRoute allowedRoles={['patient']}><MyAppointments /></ProtectedRoute>} />        <Route path="/my/visits" element={<ProtectedRoute allowedRoles={['patient']}><MyVisits /></ProtectedRoute>} />
-        <Route path="/my/profile" element={<ProtectedRoute allowedRoles={['patient']}><MyProfile /></ProtectedRoute>} />
-        <Route
+<Route path="/my/profile" element={<ProtectedRoute allowedRoles={['patient']}><MyProfile /></ProtectedRoute>} />
+
+        <Route path="/lab-results" element={<ProtectedRoute allowedRoles={STAFF}><LabResultsList /></ProtectedRoute>} />
+        <Route path="/lab-results/:id" element={<ProtectedRoute allowedRoles={STAFF}><LabResultDetail /></ProtectedRoute>} />
+        <Route path="/pharmacy" element={<ProtectedRoute allowedRoles={STAFF}><PharmacyStock /></ProtectedRoute>} />
+        <Route path="/billing" element={<ProtectedRoute allowedRoles={STAFF}><InvoicesList /></ProtectedRoute>} />
+        <Route path="/billing/:id" element={<ProtectedRoute allowedRoles={STAFF}><InvoiceDetail /></ProtectedRoute>} />
+
+        <Route path="/my/lab-results" element={<ProtectedRoute allowedRoles={['patient']}><MyLabResults /></ProtectedRoute>} />
+        <Route path="/my/lab-results/:id" element={<ProtectedRoute allowedRoles={['patient']}><LabResultDetail /></ProtectedRoute>} />
+        <Route path="/my/prescriptions" element={<ProtectedRoute allowedRoles={['patient']}><MyPrescriptions /></ProtectedRoute>} />
+        <Route path="/my/invoices" element={<ProtectedRoute allowedRoles={['patient']}><MyInvoices /></ProtectedRoute>} />
+        <Route path="/my/invoices/:id" element={<ProtectedRoute allowedRoles={['patient']}><InvoiceDetail /></ProtectedRoute>} />        <Route
   path="/patient-dashboard"
   element={
     <ProtectedRoute>

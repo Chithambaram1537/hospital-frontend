@@ -2,7 +2,10 @@ type KnownStatus =
   | 'admitted' | 'discharged' | 'outpatient'
   | 'available' | 'on-leave' | 'in-surgery'
   | 'scheduled' | 'completed' | 'cancelled'
-  | 'waiting' | 'called' | 'emergency';
+  | 'waiting' | 'called' | 'emergency'
+  | 'pending' | 'paid'
+  | 'in-stock' | 'low-stock' | 'out-of-stock'
+  | 'abnormal';
 
 const STATUS_STYLES: Record<KnownStatus, string> = {
   admitted: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -17,6 +20,12 @@ const STATUS_STYLES: Record<KnownStatus, string> = {
   waiting: 'bg-gray-100 text-gray-600 border-gray-200',
   called: 'bg-teal-50 text-teal-800 border-teal-200',
   emergency: 'bg-red-50 text-red-800 border-red-200',
+  pending: 'bg-amber-50 text-amber-800 border-amber-200',
+  paid: 'bg-green-50 text-green-800 border-green-200',
+  'in-stock': 'bg-green-50 text-green-800 border-green-200',
+  'low-stock': 'bg-amber-50 text-amber-800 border-amber-200',
+  'out-of-stock': 'bg-red-50 text-red-800 border-red-200',
+  abnormal: 'bg-red-50 text-red-800 border-red-200',
 };
 
 export default function StatusBadge({ status }: { status: string }) {

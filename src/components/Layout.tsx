@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListOrdered, Users, Stethoscope, Calendar, History, User as UserIcon, Plus } from 'lucide-react';import { useAuth } from '../store/AuthContext';
+import { LayoutDashboard, ListOrdered, Users, Stethoscope, Calendar, History, User as UserIcon, Plus, FlaskConical, PackageSearch, Receipt, Pill } from 'lucide-react';
+import { useAuth } from '../store/AuthContext';
+
 import Button from './Button';
 
 const STAFF_NAV_ITEMS = [
@@ -10,12 +12,18 @@ const STAFF_NAV_ITEMS = [
   { to: '/patients', label: 'Patients', icon: Users },
   { to: '/doctors', label: 'Doctors', icon: Stethoscope },
   { to: '/appointments', label: 'Appointments', icon: Calendar },
+  { to: '/lab-results', label: 'Lab results', icon: FlaskConical },
+  { to: '/pharmacy', label: 'Pharmacy', icon: PackageSearch },
+  { to: '/billing', label: 'Billing', icon: Receipt },
 ];
 
 const PATIENT_NAV_ITEMS = [
   { to: '/my/book', label: 'Book appointment', icon: Plus },
   { to: '/my/appointments', label: 'My appointments', icon: Calendar },
+  { to: '/my/prescriptions', label: 'My prescriptions', icon: Pill },
+  { to: '/my/lab-results', label: 'My lab results', icon: FlaskConical },
   { to: '/my/visits', label: 'Visit history', icon: History },
+  { to: '/my/invoices', label: 'My invoices', icon: Receipt },
   { to: '/my/profile', label: 'My profile', icon: UserIcon },
 ];
 
