@@ -467,6 +467,28 @@ Note: PUT /api/appointments/:id is a partial merge — sending only the changed
 fields preserves everything else already stored. The real backend should
 match this behavior (PATCH semantics), not require the full object every time.
 
+## Lab Results
+### GET /api/lab-results
+Optional query: ?patientId=1
+Response (200): { "labResults": [ { id, patientId, patientName, doctorName, testName, date, status, value, unit, referenceRange, isAbnormal, hospitalId } ] }
+
+### GET /api/lab-results/:id
+Response (200): { "labResult": {...} }
+Response (404): { "message": "Lab result not found" }
+
+## Pharmacy
+### GET /api/pharmacy-stock
+Response (200): { "stock": [ { id, medicineName, category, quantity, unit, reorderLevel, status, hospitalId } ] }
+
+## Billing
+### GET /api/invoices
+Optional query: ?patientId=1
+Response (200): { "invoices": [ { id, patientId, patientName, appointmentId, date, items: [{description, amount}], totalAmount, status, hospitalId } ] }
+
+### GET /api/invoices/:id
+Response (200): { "invoice": {...} }
+Response (404): { "message": "Invoice not found" }
+
 Response (404)
 
 ```json
