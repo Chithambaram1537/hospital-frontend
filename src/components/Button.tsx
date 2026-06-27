@@ -10,7 +10,7 @@ interface ButtonProps {
 
 const variantStyles = {
   primary: 'bg-primary text-white hover:bg-primary/90',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+  secondary: 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700',
   danger: 'bg-danger text-white hover:bg-danger/90',
 };
 

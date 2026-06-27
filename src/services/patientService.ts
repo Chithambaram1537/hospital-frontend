@@ -30,3 +30,8 @@ export async function updatePatient(id: string, data: CreatePatientRequest): Pro
 export async function deletePatient(id: string): Promise<void> {
   await api.delete(`/patients/${id}`);
 }
+
+export async function setPatientActive(id: string, isActive: boolean): Promise<Patient> {
+  const response = await api.put<PatientResponse>(`/patients/${id}`, { isActive });
+  return response.data.patient;
+}

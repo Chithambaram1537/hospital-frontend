@@ -1,11 +1,3 @@
-export default function Card({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-      {children}
-    </div>
-  );
+export default function Card({ children }: { children: React.ReactNode }) {
+  return <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-slate-700">{children}</div>;
 }

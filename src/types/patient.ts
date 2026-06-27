@@ -8,6 +8,8 @@ export interface Patient {
   address: string;
   status: 'admitted' | 'discharged' | 'outpatient';
   hospitalId: number;
+  registeredAt?: string;
+  isActive?: boolean;
 }
 
 export interface PatientListResponse {

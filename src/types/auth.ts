@@ -15,6 +15,9 @@ export interface LoginResponse {
 export interface Hospital {
   id: number;
   name: string;
+  subscriptionStatus?: 'trial' | 'active' | 'suspended';
+  openingTime?: string;
+  closingTime?: string;
 }
 
 export interface RegisterRequest {

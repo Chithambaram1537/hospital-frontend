@@ -4,12 +4,12 @@ interface AlertProps {
 }
 
 const styles = {
-  success: 'bg-green-50 text-green-800 border-green-200',
-  error: 'bg-red-50 text-red-800 border-red-200',
-  warning: 'bg-amber-50 text-amber-800 border-amber-200',
-  info: 'bg-blue-50 text-blue-800 border-blue-200',
+  success: 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-500',
+  error: 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-500',
+  warning: 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-500',
+  info: 'bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300 border-teal-500',
 };
 
 export default function Alert({ variant, children }: AlertProps) {
-  return <div className={`${styles[variant]} border rounded-lg px-4 py-3 text-sm`}>{children}</div>;
+  return <div className={`${styles[variant]} border-l-4 rounded-r-lg px-4 py-3 text-sm`}>{children}</div>;
 }

@@ -210,6 +210,21 @@ Response (404)
   "message": "Patient not found"
 }
 ```
+Patient now includes:
+
+isActive: boolean (default true)
+
+DELETE /api/patients/:id performs a soft delete by setting isActive = false.
+
+Patients are never permanently removed.
+
+A patient can be reactivated by:
+
+PUT /api/patients/:id
+
+{
+  "isActive": true
+}
 
 ---
 
@@ -488,6 +503,12 @@ Response (200): { "invoices": [ { id, patientId, patientName, appointmentId, dat
 ### GET /api/invoices/:id
 Response (200): { "invoice": {...} }
 Response (404): { "message": "Invoice not found" }
+
+## Admin
+### PUT /api/hospitals/:id — update name/timings
+### GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id — staff accounts
+### GET /api/roles, POST /api/roles — custom roles (storage only; enforcement is backend RBAC work, P2-06)
+### GET /api/audit-logs — currently logs login events only; full coverage needs P2-09 middleware
 
 Response (404)
 
