@@ -12,16 +12,16 @@ export interface Prescription {
 }
 
 export interface Appointment {
-  id: number;
-  patientId: number;
+  id: string;
+  patientId: string;
   patientName: string;
-  doctorId: number;
+  doctorId: string;
   doctorName: string;
   date: string;
   time: string;
   reason: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  hospitalId: number;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  hospitalId?: number;
   chiefComplaint?: string;
   diagnosis?: string;
   vitals?: Vitals;
@@ -31,8 +31,8 @@ export interface Appointment {
 export interface AppointmentListResponse { appointments: Appointment[]; }
 export interface AppointmentResponse { appointment: Appointment; }
 export interface CreateAppointmentRequest {
-  patientId: number; doctorId: number; date: string; time: string;
-  reason: string; status: 'scheduled' | 'completed' | 'cancelled';
+  patientId: string; doctorId: string; date: string; time: string;
+  reason: string; status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
 }
 export interface ConsultationNotesRequest {
   chiefComplaint?: string;

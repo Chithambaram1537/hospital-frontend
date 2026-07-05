@@ -1,17 +1,18 @@
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
-  hospitalId: number;
-  patientId?: number;
-  doctorId?: number;
+  hospitalId?: number;
+  patientId?: string;
+  doctorId?: string;
 }
 
 export interface LoginResponse {
   token: string;
   user: User;
 }
+
 export interface Hospital {
   id: number;
   name: string;

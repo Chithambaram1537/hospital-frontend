@@ -259,13 +259,13 @@ export default function BookAppointment() {
           </Card>
       </div>
 
-      <div className="sticky bottom-0 z-10 bg-white border-t border-gray-200 -mx-4 md:-mx-8 px-4 md:px-8 py-4">
+      <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 -mx-4 md:-mx-8 px-4 md:px-8 py-4">
         <div className="max-w-lg mx-auto flex justify-between">
-          <Button variant="secondary" onClick={handleBack} disabled={stepIndex === 0}>Back</Button>
+          <Button key={`back-${currentStep}`} variant="secondary" onClick={handleBack} disabled={stepIndex === 0}>Back</Button>
           {currentStep === 'review' ? (
-            <Button onClick={handleConfirm} disabled={isSubmitting}>{isSubmitting ? 'Booking...' : 'Confirm booking'}</Button>
+            <Button key="confirm" onClick={handleConfirm} disabled={isSubmitting}>{isSubmitting ? 'Booking...' : 'Confirm booking'}</Button>
           ) : (
-            <Button onClick={handleNext} disabled={!canGoNext()}>Next</Button>
+            <Button key={`next-${currentStep}`} onClick={handleNext} disabled={!canGoNext()}>Next</Button>
           )}
         </div>
       </div>

@@ -1,12 +1,12 @@
 export interface Doctor {
-  id: number;
+  id: string;
   name: string;
   specialty: string;
   phone: string;
   email: string;
   experience: number;
   status: 'available' | 'on-leave' | 'in-surgery';
-  hospitalId: number;
+  hospitalId?: number;
 }
 
 export interface DoctorListResponse { doctors: Doctor[]; }
