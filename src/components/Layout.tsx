@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard, ListOrdered, Users, Stethoscope, Calendar, History, User as UserIcon, Plus,
-  FlaskConical, PackageSearch, Receipt, Pill, Building2, UserCog, ShieldCheck, ScrollText,
-  BarChart3, FileSpreadsheet, Sun, Moon,
-} from 'lucide-react';
+import { LayoutDashboard, ListOrdered, Users, Stethoscope, Calendar, History, User as UserIcon, Plus, FlaskConical, PackageSearch, Receipt, Pill, Building2, UserCog, ShieldCheck, ScrollText, BarChart3, FileSpreadsheet, Sun, Moon, BedDouble, Home } from 'lucide-react'; 
 import { useAuth } from '../store/AuthContext';
 import { useTheme } from '../store/ThemeContext';
 import Button from './Button';
@@ -19,6 +15,8 @@ const STAFF_NAV_ITEMS = [
   { to: '/lab-results', label: 'Lab results', icon: FlaskConical },
   { to: '/pharmacy', label: 'Pharmacy', icon: PackageSearch },
   { to: '/billing', label: 'Billing', icon: Receipt },
+  { to: '/wards', label: 'Wards', icon: BedDouble },
+  { to: '/rooms', label: 'Rooms', icon: Home },
 ];
 
 const ADMIN_NAV_ITEMS = [

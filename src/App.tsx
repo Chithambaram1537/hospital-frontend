@@ -39,6 +39,11 @@ import AdminRoles from './pages/admin/AdminRoles';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminReports from './pages/admin/AdminReports';
+import WardsList from './pages/ward/WardsList';
+import WardDetail from './pages/ward/WardDetail';
+import AdmissionsList from './pages/ward/AdmissionsList';
+import NewAdmission from './pages/ward/NewAdmission';
+import RoomsOverview from './pages/rooms/RoomsOverview';
 
 
 const STAFF = ['admin', 'doctor', 'receptionist'];
@@ -80,6 +85,11 @@ export default function App() {
         <Route path="/pharmacy" element={<ProtectedRoute allowedRoles={STAFF}><PharmacyStock /></ProtectedRoute>} />
         <Route path="/billing" element={<ProtectedRoute allowedRoles={STAFF}><InvoicesList /></ProtectedRoute>} />
         <Route path="/billing/:id" element={<ProtectedRoute allowedRoles={STAFF}><InvoiceDetail /></ProtectedRoute>} />
+        <Route path="/wards" element={<ProtectedRoute allowedRoles={STAFF}><WardsList /></ProtectedRoute>} />
+        <Route path="/wards/:id" element={<ProtectedRoute allowedRoles={STAFF}><WardDetail /></ProtectedRoute>} />
+        <Route path="/admissions" element={<ProtectedRoute allowedRoles={STAFF}><AdmissionsList /></ProtectedRoute>} />
+        <Route path="/admissions/new" element={<ProtectedRoute allowedRoles={STAFF}><NewAdmission /></ProtectedRoute>} />
+        <Route path="/rooms" element={<ProtectedRoute allowedRoles={STAFF}><RoomsOverview /></ProtectedRoute>} />
 
         <Route path="/my/lab-results" element={<ProtectedRoute allowedRoles={['patient']}><MyLabResults /></ProtectedRoute>} />
         <Route path="/my/lab-results/:id" element={<ProtectedRoute allowedRoles={['patient']}><LabResultDetail /></ProtectedRoute>} />
