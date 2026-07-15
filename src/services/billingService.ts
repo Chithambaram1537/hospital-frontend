@@ -1,69 +1,118 @@
 import api from './api';
 import type { Invoice } from '../types/billing';
 
-interface P3Invoice {
+interface P2Invoice {
   invoice_id: string;
   patient_id: string;
-  invoice_number: string;
+  appointment_id?: string;
   status: string;
-  issued_at: string;
-  total_amount: string;
-  items?: { description: string; unit_price: string; quantity: number }[];
+  created_at: string;
+  total_amount: number;
+  discount_percent?: number;
+  notes?: string;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  items?: {
+    invoice_item_id: string;
+    service_name: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+    description?: string;
+  }[];
+  payments?: {
+    payment_id: string;
+    amount: number;
+    payment_method: string;
+    payment_date: string;
+  }[];
 }
 
-interface P3Response {
-  status: string;
-  data: P3Invoice[];
-  pagination?: { page: number; };
+interface P2ListResponse {
+  success: boolean;
+  data: P2Invoice[];
 }
 
-interface P3SingleResponse {
-  status: string;
-  data: P3Invoice;
-}
-
-let patientNameCache = new Map<string, string>();
-
-async function resolvePatientName(patientId: string): Promise<string> {
-  let name = patientNameCache.get(patientId);
-  if (!name) {
-    try {
-      const r = await api.get<{ status: string; data: { first_name: string; last_name: string } }>(`/patients/${patientId}`);
-      name = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
-      patientNameCache.set(patientId, name);
-    } catch { name = 'Unknown patient'; }
-  }
-  return name;
-}
-
-async function adaptInvoice(inv: P3Invoice): Promise<Invoice> {
-  const patientName = await resolvePatientName(inv.patient_id);
-  const items = (inv.items || []).map((it) => ({
-    description: it.description,
-    amount: Number(it.unit_price) * (it.quantity || 1),
+function adaptInvoice(inv: P2Invoice): Invoice {
+  const patientName = inv.patient_first_name
+    ? `${inv.patient_first_name} ${inv.patient_last_name ?? ''}`.trim()
+    : '';
+  const items = (inv.items ?? []).map((it) => ({
+    description: `${it.service_name}${it.description ? ` — ${it.description}` : ''}`,
+    amount: it.amount,
   }));
-  const totalAmount = items.reduce((sum, it) => sum + it.amount, 0) || Number(inv.total_amount) || 0;
   return {
     id: inv.invoice_id as unknown as number,
     patientId: inv.patient_id as unknown as number,
     patientName,
     appointmentId: 0,
-    date: inv.issued_at?.split('T')[0] ?? '',
+    date: inv.created_at?.split('T')[0] ?? '',
     items,
-    totalAmount,
-    status: inv.status === 'paid' ? 'paid' : 'pending',
+    totalAmount: inv.total_amount,
+    status: inv.status === 'Paid' ? 'paid' : 'pending',
     hospitalId: 1,
   };
 }
 
-export async function getInvoices(patientId?: number): Promise<Invoice[]> {
-  const params: Record<string, unknown> = { pageSize: 100 };
-  if (patientId) params.patientId = patientId;
-  const response = await api.get<P3Response>('/invoices', { params });
-  return Promise.all(response.data.data.map(adaptInvoice));
+export async function getInvoices(patientId?: string | number): Promise<Invoice[]> {
+  const params: Record<string, string> = {};
+  if (patientId) params.patient_id = String(patientId);
+  const response = await api.get<P2ListResponse>('/billing/invoices', { params });
+  return response.data.data.map(adaptInvoice);
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice> {
-  const response = await api.get<P3SingleResponse>(`/invoices/${id}`);
+  const response = await api.get<{ success: boolean; data: P2Invoice }>(`/billing/invoices/${id}`);
   return adaptInvoice(response.data.data);
+}
+
+export async function createInvoice(data: {
+  patientId: string; appointmentId: string;
+  services: { serviceName: string; quantity: number; rate: number; description?: string }[];
+  discountPercent?: number; notes?: string;
+}): Promise<Invoice> {
+  const payload = {
+    patient_id: data.patientId,
+    appointment_id: data.appointmentId,
+    services: data.services.map((s) => ({
+      service_name: s.serviceName,
+      quantity: s.quantity,
+      rate: s.rate,
+      description: s.description,
+    })),
+    discount_percent: data.discountPercent,
+    notes: data.notes,
+  };
+  const response = await api.post<{ success: boolean; data: P2Invoice }>('/billing/invoices', payload);
+  return adaptInvoice(response.data.data);
+}
+
+export async function recordPayment(invoiceId: string, data: {
+  amount: number;
+  paymentMethod: 'Cash' | 'Cheque' | 'Card' | 'Net Banking' | 'UPI' | 'Insurance';
+  transactionId?: string;
+  notes?: string;
+}): Promise<void> {
+  await api.post(`/billing/invoices/${invoiceId}/payments`, {
+    amount: data.amount,
+    payment_method: data.paymentMethod,
+    transaction_id: data.transactionId,
+    notes: data.notes,
+  });
+}
+
+export async function getBillingSummary(dateFrom: string, dateTo: string): Promise<{
+  totalInvoices: number; paidAmount: number; pendingAmount: number; totalAmount: number;
+}> {
+  const response = await api.get<{
+    success: boolean;
+    data: { total_invoices: number; paid_amount: number; pending_amount: number; total_amount: number };
+  }>('/billing/summary', { params: { date_from: dateFrom, date_to: dateTo } });
+  const d = response.data.data;
+  return {
+    totalInvoices: d.total_invoices,
+    paidAmount: d.paid_amount,
+    pendingAmount: d.pending_amount,
+    totalAmount: d.total_amount,
+  };
 }

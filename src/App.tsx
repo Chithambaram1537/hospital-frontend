@@ -46,8 +46,7 @@ import NewAdmission from './pages/ward/NewAdmission';
 import RoomsOverview from './pages/rooms/RoomsOverview';
 
 
-const STAFF = ['admin', 'doctor', 'receptionist'];
-export default function App() {
+const STAFF = ['admin', 'doctor', 'nurse', 'pharmacist', 'accountant', 'lab_technician', 'staff'];export default function App() {
   return (
     <BrowserRouter>
       <Routes>

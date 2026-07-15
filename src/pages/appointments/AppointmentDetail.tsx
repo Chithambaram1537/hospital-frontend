@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Stethoscope } from 'lucide-react';
-import { getAppointmentById, deleteAppointment, addConsultationNotes } from '../../services/appointmentService';
-import type { Appointment, Prescription, Vitals } from '../../types/appointment';
+import { getAppointmentById, deleteAppointment, updateAppointment } from '../../services/appointmentService';
+import type { Appointment } from '../../types/appointment';
 import Layout from '../../components/Layout';
 import Card from '../../components/Card';
 import Alert from '../../components/Alert';
 import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import AddConsultationModal from '../../components/AddConsultationModal';
+import { useAuth } from '../../store/AuthContext';
 
 export default function AppointmentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -20,7 +22,9 @@ export default function AppointmentDetail() {
 
   function load() {
     if (!id) return;
-    getAppointmentById(id).then(setAppointment).catch(() => setError('Could not load appointment'));
+    getAppointmentById(id)
+      .then(setAppointment)
+      .catch(() => setError('Could not load appointment'));
   }
 
   useEffect(load, [id]);
@@ -38,49 +42,89 @@ export default function AppointmentDetail() {
     }
   }
 
-  async function handleSaveNotes(data: { chiefComplaint: string; diagnosis: string; vitals: Vitals; prescriptions: Prescription[] }) {
-    if (!id) return;
-    await addConsultationNotes(id, { ...data, status: 'completed' });
-    load();
+  async function handleMarkNoShow() {
+    if (!id || !appointment) return;
+    try {
+      await updateAppointment(id, {
+        ...appointment,
+        status: 'no-show',
+        appointmentType: appointment.appointmentType as 'Consultation' | 'Follow-up' | 'Emergency',
+      });
+      load();
+    } catch {
+      setError('Could not update appointment');
+    }
   }
+
+  const isDoctor = user?.role === 'doctor' || user?.role === 'admin';
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Appointment details</h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Appointment details</h1>
         {appointment && (
-          <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setIsNotesOpen(true)}>
-              <span className="flex items-center gap-1.5"><Stethoscope size={14} />Add notes</span>
-            </Button>
+          <div className="flex gap-2 flex-wrap">
+            {isDoctor && appointment.status === 'scheduled' && (
+              <Button variant="secondary" size="sm" onClick={() => setIsNotesOpen(true)}>
+                <span className="flex items-center gap-1.5"><Stethoscope size={14} />Add consultation notes</span>
+              </Button>
+            )}
+            {appointment.status === 'scheduled' && (
+              <Button variant="secondary" size="sm" onClick={handleMarkNoShow}>Mark no-show</Button>
+            )}
             <Button variant="secondary" size="sm" onClick={() => navigate(`/appointments/${id}/edit`)}>Edit</Button>
             <Button variant="danger" size="sm" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Cancelling...' : 'Cancel appointment'}
             </Button>
           </div>
         )}
       </div>
       {error && <Alert variant="error">{error}</Alert>}
       {appointment && (
-        <Card>
-          <div className="grid grid-cols-2 gap-4">
-            <div><span className="text-gray-500 text-sm">Patient</span><p>{appointment.patientName}</p></div>
-            <div><span className="text-gray-500 text-sm">Doctor</span><p>{appointment.doctorName}</p></div>
-            <div><span className="text-gray-500 text-sm">Date</span><p>{appointment.date}</p></div>
-            <div><span className="text-gray-500 text-sm">Time</span><p>{appointment.time}</p></div>
-            <div className="col-span-2"><span className="text-gray-500 text-sm">Reason</span><p>{appointment.reason}</p></div>
-            <div><span className="text-gray-500 text-sm">Status</span><div className="mt-1"><StatusBadge status={appointment.status} /></div></div>
-          </div>
-          {appointment.diagnosis && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <span className="text-gray-500 text-sm">Diagnosis</span>
-              <p className="text-sm mt-1">{appointment.diagnosis}</p>
+        <div className="space-y-4">
+          <Card>
+            <div className="grid grid-cols-2 gap-4">
+              <div><span className="text-gray-500 text-sm">Patient</span><p className="text-gray-900 dark:text-gray-100">{appointment.patientName}</p></div>
+              <div><span className="text-gray-500 text-sm">Doctor</span><p className="text-gray-900 dark:text-gray-100">{appointment.doctorName}</p></div>
+              <div><span className="text-gray-500 text-sm">Date</span><p className="text-gray-900 dark:text-gray-100">{appointment.date}</p></div>
+              <div><span className="text-gray-500 text-sm">Time</span><p className="text-gray-900 dark:text-gray-100">{appointment.time}</p></div>
+              <div><span className="text-gray-500 text-sm">Type</span><p className="text-gray-900 dark:text-gray-100">{appointment.appointmentType}</p></div>
+              <div><span className="text-gray-500 text-sm">Status</span><div className="mt-1"><StatusBadge status={appointment.status} /></div></div>
+              {appointment.reason && (
+                <div className="col-span-2">
+                  <span className="text-gray-500 text-sm">Reason</span>
+                  <p className="text-gray-900 dark:text-gray-100">{appointment.reason}</p>
+                </div>
+              )}
             </div>
+          </Card>
+
+          {appointment.consultationId && (
+            <Card>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Consultation recorded</p>
+              <p className="text-xs text-gray-500">Consultation ID: {appointment.consultationId}</p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/patients/${appointment.patientId}`)}
+              >
+                View full medical history →
+              </Button>
+            </Card>
           )}
-        </Card>
+        </div>
       )}
 
-      <AddConsultationModal isOpen={isNotesOpen} onClose={() => setIsNotesOpen(false)} onSave={handleSaveNotes} />
+      {appointment && isDoctor && (
+        <AddConsultationModal
+          isOpen={isNotesOpen}
+          onClose={() => setIsNotesOpen(false)}
+          appointmentId={appointment.id}
+          patientId={appointment.patientId}
+          doctorId={appointment.doctorId}
+          onSaved={load}
+        />
+      )}
     </Layout>
   );
 }

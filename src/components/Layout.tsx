@@ -50,11 +50,15 @@ export default function Layout({ children }: { children: ReactNode }) {
     navigate('/login');
   }
 
-  const navItems = user?.role === 'patient'
-    ? PATIENT_NAV_ITEMS
-    : user?.role === 'admin'
-    ? [...STAFF_NAV_ITEMS, ...ADMIN_NAV_ITEMS]
-    : STAFF_NAV_ITEMS;
+  const ADMIN_ROLES = ['admin'];
+const CLINICAL_ROLES = ['doctor', 'nurse'];
+const SUPPORT_ROLES = ['pharmacist', 'accountant', 'lab_technician', 'staff'];
+
+const navItems = user?.role === 'patient'
+  ? PATIENT_NAV_ITEMS
+  : ADMIN_ROLES.includes(user?.role ?? '')
+  ? [...STAFF_NAV_ITEMS, ...ADMIN_NAV_ITEMS]
+  : STAFF_NAV_ITEMS;
 
   const currentLabel = navItems.find((item) => location.pathname.startsWith(item.to))?.label ?? '';
 

@@ -1,132 +1,173 @@
 import api from './api';
-import type { Appointment, CreateAppointmentRequest, ConsultationNotesRequest } from '../types/appointment';
+import type {
+  Appointment, CreateAppointmentRequest,
+  ConsultationNotesRequest, AvailableSlot
+} from '../types/appointment';
 
-interface P3Appointment {
+interface P2Appointment {
   appointment_id: string;
   patient_id: string;
   doctor_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  chief_complaint?: string;
+  scheduled_start_at: string;
+  scheduled_end_at: string;
+  appointment_type: string;
   status: string;
+  reason?: string;
+  notes?: string;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  doctor_first_name?: string;
+  doctor_last_name?: string;
+  consultation_id?: string;
 }
 
-interface P3ListResponse {
-  status: string;
-  data: P3Appointment[];
-  pagination?: { page: number; pageSize: number; totalCount: number; totalPages: number; };
+interface P2ListResponse {
+  success: boolean;
+  data: P2Appointment[];
 }
 
-interface P3SingleResponse {
-  status: string;
-  data: P3Appointment;
+interface P2SingleResponse {
+  success: boolean;
+  data: P2Appointment;
 }
 
-function addThirtyMinutes(time: string): string {
-  const [h, m] = time.split(':').map(Number);
-  const total = h * 60 + m + 30;
-  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+interface P2AvailabilityResponse {
+  success: boolean;
+  data: {
+    is_available: boolean;
+    available_slots: { start: string; end: string }[];
+    booked_slots: { start: string; end: string }[];
+    booked_count: number;
+    max_appointments_per_day: number;
+  };
 }
 
-const P3_TO_FRONTEND_STATUS: Record<string, Appointment['status']> = {
-  booked: 'scheduled', confirmed: 'scheduled', checked_in: 'scheduled',
-  in_consultation: 'scheduled', completed: 'completed', cancelled: 'cancelled', no_show: 'no-show',
+const STATUS_MAP: Record<string, Appointment['status']> = {
+  Scheduled: 'scheduled',
+  'Check-in': 'scheduled',
+  'In-progress': 'in-progress',
+  Completed: 'completed',
+  Cancelled: 'cancelled',
+  'No-show': 'no-show',
 };
 
-const FRONTEND_TO_P3_STATUS: Record<string, string> = {
-  scheduled: 'booked', completed: 'completed', cancelled: 'cancelled', 'no-show': 'no_show',
+const REVERSE_STATUS_MAP: Record<string, string> = {
+  scheduled: 'Scheduled',
+  'in-progress': 'In-progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  'no-show': 'No-show',
 };
 
-let patientNameCache = new Map<string, string>();
-let doctorNameCache = new Map<string, string>();
-
-async function resolveNames(patientId: string, doctorId: string) {
-  let patientName = patientNameCache.get(patientId);
-  let doctorName = doctorNameCache.get(doctorId);
-
-  if (!patientName) {
-    try {
-      const r = await api.get<{ status: string; data: { first_name: string; last_name: string } }>(`/patients/${patientId}`);
-      patientName = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
-      patientNameCache.set(patientId, patientName);
-    } catch { patientName = 'Unknown patient'; }
-  }
-
-  if (!doctorName) {
-    try {
-      const r = await api.get<{ status: string; data: { first_name: string; last_name: string } }>(`/doctors/${doctorId}`);
-      doctorName = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
-      doctorNameCache.set(doctorId, doctorName);
-    } catch { doctorName = 'Unknown doctor'; }
-  }
-
-  return { patientName, doctorName };
+function parseDateTime(iso: string) {
+  const d = new Date(iso);
+  const date = d.toISOString().split('T')[0];
+  const time = d.toTimeString().slice(0, 5);
+  return { date, time };
 }
 
-async function adaptAppointment(a: P3Appointment): Promise<Appointment> {
-  const { patientName, doctorName } = await resolveNames(a.patient_id, a.doctor_id);
+function buildIso(date: string, time: string): string {
+  return new Date(`${date}T${time}:00`).toISOString();
+}
+
+function addThirtyMin(isoStart: string): string {
+  return new Date(new Date(isoStart).getTime() + 30 * 60000).toISOString();
+}
+
+function adaptAppointment(a: P2Appointment): Appointment {
+  const { date, time } = parseDateTime(a.scheduled_start_at);
+  const patientName = a.patient_first_name
+    ? `${a.patient_first_name} ${a.patient_last_name ?? ''}`.trim()
+    : '';
+  const doctorName = a.doctor_first_name
+    ? `${a.doctor_first_name} ${a.doctor_last_name ?? ''}`.trim()
+    : '';
   return {
     id: a.appointment_id,
     patientId: a.patient_id,
     patientName,
     doctorId: a.doctor_id,
     doctorName,
-    date: a.date,
-    time: a.start_time?.slice(0, 5) ?? '',
-    reason: a.chief_complaint ?? '',
-    status: P3_TO_FRONTEND_STATUS[a.status] ?? 'scheduled',
-    chiefComplaint: a.chief_complaint,
+    date,
+    time,
+    scheduledStartAt: a.scheduled_start_at,
+    scheduledEndAt: a.scheduled_end_at,
+    reason: a.reason ?? '',
+    appointmentType: a.appointment_type,
+    status: STATUS_MAP[a.status] ?? 'scheduled',
+    consultationId: a.consultation_id,
   };
 }
 
-export async function getAppointments(): Promise<Appointment[]> {
-  const response = await api.get<P3ListResponse>('/appointments', { params: { pageSize: 100 } });
-  return Promise.all(response.data.data.map(adaptAppointment));
+export async function getAppointments(filters?: {
+  patientId?: string; doctorId?: string;
+  dateFrom?: string; dateTo?: string;
+}): Promise<Appointment[]> {
+  const params: Record<string, string> = { limit: '100' };
+  if (filters?.patientId) params.patient_id = filters.patientId;
+  if (filters?.doctorId) params.doctor_id = filters.doctorId;
+  if (filters?.dateFrom) params.date_from = filters.dateFrom;
+  if (filters?.dateTo) params.date_to = filters.dateTo;
+  const response = await api.get<P2ListResponse>('/appointments', { params });
+  return response.data.data.map(adaptAppointment);
 }
 
 export async function getAppointmentById(id: string): Promise<Appointment> {
-  const response = await api.get<P3SingleResponse>(`/appointments/${id}`);
+  const response = await api.get<P2SingleResponse>(`/appointments/${id}`);
   return adaptAppointment(response.data.data);
 }
 
 export async function createAppointment(data: CreateAppointmentRequest): Promise<Appointment> {
+  const isoStart = buildIso(data.date, data.time);
+  const isoEnd = addThirtyMin(isoStart);
   const payload = {
     patient_id: data.patientId,
     doctor_id: data.doctorId,
-    date: data.date,
-    start_time: data.time,
-    end_time: addThirtyMinutes(data.time),
-    chief_complaint: data.reason,
-    appointment_type: 'consultation',
+    scheduled_start_at: isoStart,
+    scheduled_end_at: isoEnd,
+    appointment_type: data.appointmentType || 'Consultation',
+    reason: data.reason,
   };
-  const response = await api.post<P3SingleResponse>('/appointments', payload);
+  const response = await api.post<P2SingleResponse>('/appointments', payload);
   return adaptAppointment(response.data.data);
 }
 
-export async function updateAppointment(id: string, data: CreateAppointmentRequest): Promise<Appointment> {
-  const payload: Record<string, unknown> = {
-    status: FRONTEND_TO_P3_STATUS[data.status] || 'booked',
-  };
-  if (data.date) {
-    payload.date = data.date;
-    payload.start_time = data.time;
-    payload.end_time = addThirtyMinutes(data.time);
+export async function updateAppointment(id: string, data: Partial<CreateAppointmentRequest>): Promise<Appointment> {
+  const payload: Record<string, unknown> = {};
+  if (data.status) payload.status = REVERSE_STATUS_MAP[data.status] ?? data.status;
+  if (data.reason) payload.reason = data.reason;
+  if (data.date && data.time) {
+    const isoStart = buildIso(data.date, data.time);
+    payload.scheduled_start_at = isoStart;
+    payload.scheduled_end_at = addThirtyMin(isoStart);
   }
-  const response = await api.put<P3SingleResponse>(`/appointments/${id}`, payload);
+  const response = await api.put<P2SingleResponse>(`/appointments/${id}`, payload);
   return adaptAppointment(response.data.data);
 }
 
 export async function deleteAppointment(id: string): Promise<void> {
-  await api.post(`/appointments/${id}/cancel`, { cancellation_reason: 'Cancelled by staff' });
+  await api.put(`/appointments/${id}/cancel`, { reason: 'Cancelled by staff' });
+}
+
+export async function getAvailableSlots(doctorId: string, date: string): Promise<AvailableSlot[]> {
+  const response = await api.get<P2AvailabilityResponse>(
+    '/appointments/availability',
+    { params: { doctor_id: doctorId, date } }
+  );
+  const { available_slots } = response.data.data;
+  return (available_slots || []).map((s) => ({
+    start_time: new Date(s.start).toTimeString().slice(0, 5),
+    end_time: new Date(s.end).toTimeString().slice(0, 5),
+    is_available: true,
+  }));
 }
 
 export async function addConsultationNotes(id: string, data: ConsultationNotesRequest): Promise<Appointment> {
-  await api.post('/consultations', {
-    appointment_id: id,
-    chief_complaint: data.chiefComplaint,
-    provisional_diagnosis: data.diagnosis,
-    status: 'completed',
+  // EHR consultation is a separate endpoint — see ehrService
+  // We just update the appointment status here
+  const response = await api.put<P2SingleResponse>(`/appointments/${id}`, {
+    status: 'Completed',
+    notes: data.chiefComplaint || data.diagnosis || '',
   });
-  return getAppointmentById(id);
+  return adaptAppointment(response.data.data);
 }

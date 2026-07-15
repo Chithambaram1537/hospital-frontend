@@ -1,194 +1,258 @@
 import api from './api';
 import type { Ward, Bed, Admission, OccupancyReport } from '../types/ward';
 
-interface P3Ward {
+interface P2Ward {
   ward_id: string;
-  ward_code: string;
-  ward_name: string;
+  name: string;
   ward_type: string;
   total_beds: number;
   available_beds: number;
-  occupied_beds: number;
-  floor_number?: string;
-  is_active: boolean;
+  description?: string;
+  status: string;
 }
 
-interface P3Bed {
-  bed_id: string;
+interface P2Room {
+  room_id: string;
   ward_id: string;
+  room_number: string;
+  room_type: string;
+  total_beds: number;
+  available_beds: number;
+  status: string;
+}
+
+interface P2Bed {
+  bed_id: string;
+  room_id: string;
+  ward_id?: string;
   bed_number: string;
   status: string;
-  bed_type?: string;
 }
 
-interface P3Admission {
+interface P2Admission {
   admission_id: string;
   patient_id: string;
-  ward_id: string;
-  ward_name?: string;
   bed_id: string;
-  bed_number?: string;
-  admitting_doctor_id: string;
-  admission_date: string;
-  expected_discharge_date?: string;
-  primary_diagnosis?: string;
+  doctor_id: string;
+  admission_reason: string;
+  admission_type: string;
   status: string;
+  admission_date: string;
+  discharge_date?: string;
+  expected_stay_days?: number;
+  chief_complaint?: string;
 }
 
-let patientNameCache = new Map<string, string>();
-let doctorNameCache = new Map<string, string>();
+// Cache for name lookups
+const patientNameCache = new Map<string, string>();
+const doctorNameCache = new Map<string, string>();
 
-async function resolvePatientName(patientId: string): Promise<string> {
-  let name = patientNameCache.get(patientId);
-  if (!name) {
-    try {
-      const r = await api.get<{ status: string; data: { first_name: string; last_name: string } }>(`/patients/${patientId}`);
-      name = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
-      patientNameCache.set(patientId, name);
-    } catch { name = 'Unknown patient'; }
-  }
-  return name;
+async function resolvePatientName(id: string): Promise<string> {
+  if (patientNameCache.has(id)) return patientNameCache.get(id)!;
+  try {
+    const r = await api.get<{ success: boolean; data: { first_name: string; last_name: string } }>(`/patients/${id}`);
+    const name = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
+    patientNameCache.set(id, name);
+    return name;
+  } catch { return 'Unknown patient'; }
 }
 
-async function resolveDoctorName(doctorId: string): Promise<string> {
-  let name = doctorNameCache.get(doctorId);
-  if (!name) {
-    try {
-      const r = await api.get<{ status: string; data: { first_name: string; last_name: string } }>(`/doctors/${doctorId}`);
-      name = `${r.data.data.first_name} ${r.data.data.last_name}`.trim();
-      doctorNameCache.set(doctorId, name);
-    } catch { name = 'Unknown doctor'; }
-  }
-  return name;
+async function resolveDoctorName(id: string): Promise<string> {
+  if (doctorNameCache.has(id)) return doctorNameCache.get(id)!;
+  try {
+    const r = await api.get<{ success: boolean; data: { first_name?: string; last_name?: string; name?: string } }>(`/doctors/${id}`);
+    const d = r.data.data;
+    const name = d.name ?? `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim();
+    doctorNameCache.set(id, name);
+    return name;
+  } catch { return 'Unknown doctor'; }
 }
 
-function adaptWard(w: P3Ward): Ward {
+function adaptWard(w: P2Ward): Ward {
   return {
     id: w.ward_id,
-    wardCode: w.ward_code,
-    wardName: w.ward_name,
-    wardType: w.ward_type as Ward['wardType'],
+    wardCode: w.ward_id.slice(0, 8).toUpperCase(),
+    wardName: w.name,
+    wardType: w.ward_type.toLowerCase() as Ward['wardType'],
     totalBeds: w.total_beds,
     availableBeds: w.available_beds,
-    occupiedBeds: w.occupied_beds,
-    floor: w.floor_number,
-    isActive: w.is_active,
+    occupiedBeds: w.total_beds - w.available_beds,
+    isActive: w.status === 'Active',
   };
 }
 
-function adaptBed(b: P3Bed): Bed {
+function adaptBed(b: P2Bed): Bed {
   return {
     id: b.bed_id,
-    wardId: b.ward_id,
+    wardId: b.ward_id ?? '',
     bedNumber: b.bed_number,
     status: b.status as Bed['status'],
-    bedType: b.bed_type,
   };
 }
 
-async function adaptAdmission(a: P3Admission): Promise<Admission> {
-  const [patientName, admittingDoctorName] = await Promise.all([
+async function adaptAdmission(a: P2Admission): Promise<Admission> {
+  const [patientName, doctorName] = await Promise.all([
     resolvePatientName(a.patient_id),
-    resolveDoctorName(a.admitting_doctor_id),
+    resolveDoctorName(a.doctor_id),
   ]);
   return {
     id: a.admission_id,
     patientId: a.patient_id,
     patientName,
-    wardId: a.ward_id,
-    wardName: a.ward_name ?? '',
+    wardId: '',
+    wardName: '',
     bedId: a.bed_id,
-    bedNumber: a.bed_number ?? '',
-    admittingDoctorId: a.admitting_doctor_id,
-    admittingDoctorName,
+    bedNumber: '',
+    admittingDoctorId: a.doctor_id,
+    admittingDoctorName: doctorName,
     admissionDate: a.admission_date?.split('T')[0] ?? '',
-    expectedDischargeDate: a.expected_discharge_date?.split('T')[0],
-    diagnosis: a.primary_diagnosis,
-    status: a.status as Admission['status'],
+    diagnosis: a.chief_complaint ?? a.admission_reason,
+    status: a.status === 'Active' ? 'active' : 'discharged',
   };
 }
 
 export async function getWards(): Promise<Ward[]> {
-  const response = await api.get<{ status: string; data: P3Ward[] }>('/wards');
+  const response = await api.get<{ success: boolean; data: P2Ward[] }>('/wards');
   return response.data.data.map(adaptWard);
 }
 
 export async function getWardById(id: string): Promise<Ward> {
-  const response = await api.get<{ status: string; data: P3Ward }>(`/wards/${id}`);
-  return adaptWard(response.data.data);
+  const wards = await getWards();
+  const found = wards.find((w) => w.id === id);
+  if (found) return found;
+  throw new Error('Ward not found');
 }
 
-export async function getBedsForWard(wardId: string, status?: string): Promise<Bed[]> {
-  const params = status ? { status } : {};
-  const response = await api.get<{ status: string; data: P3Bed[] }>(`/wards/${wardId}/beds`, { params });
-  return response.data.data.map(adaptBed);
-}
-
-export async function updateBedStatus(wardId: string, bedId: string, status: string): Promise<Bed> {
-  const response = await api.patch<{ status: string; data: P3Bed }>(
-    `/wards/${wardId}/beds/${bedId}/status`, { status }
-  );
-  return adaptBed(response.data.data);
-}
-
-export async function getOccupancyReport(): Promise<OccupancyReport> {
-  const response = await api.get<{ status: string; data: OccupancyReport }>('/wards/reports/occupancy');
+export async function getRoomsForWard(wardId: string): Promise<P2Room[]> {
+  const response = await api.get<{ success: boolean; data: P2Room[] }>(`/wards/${wardId}/rooms`);
   return response.data.data;
 }
 
-export async function getAdmissions(filters?: { patientId?: string; wardId?: string; status?: string }): Promise<Admission[]> {
-  const response = await api.get<{ status: string; data: P3Admission[] }>('/admissions', {
-    params: { ...filters, pageSize: 100 }
-  });
+export async function getBedsForWard(wardId: string, status?: string): Promise<Bed[]> {
+  const rooms = await getRoomsForWard(wardId);
+  const allBeds: Bed[] = [];
+  await Promise.all(rooms.map(async (room) => {
+    const response = await api.get<{ success: boolean; data: P2Bed[] }>(
+      `/wards/${wardId}/rooms/${room.room_id}/beds`
+    );
+    const beds = response.data.data.map((b) => adaptBed({ ...b, ward_id: wardId }));
+    allBeds.push(...beds);
+  }));
+  if (status) return allBeds.filter((b) => b.status === status);
+  return allBeds;
+}
+
+export async function getAdmissions(filters?: {
+  patientId?: string; status?: string;
+}): Promise<Admission[]> {
+  const params: Record<string, string> = {};
+  if (filters?.patientId) params.patient_id = filters.patientId;
+  if (filters?.status) params.status = filters.status === 'active' ? 'Active' : 'Discharged';
+  const response = await api.get<{ success: boolean; data: P2Admission[] }>(
+    '/wards/admissions', { params }
+  );
   return Promise.all(response.data.data.map(adaptAdmission));
 }
 
 export async function getAdmissionById(id: string): Promise<Admission> {
-  const response = await api.get<{ status: string; data: P3Admission }>(`/admissions/${id}`);
-  return adaptAdmission(response.data.data);
+  const all = await getAdmissions();
+  const found = all.find((a) => a.id === id);
+  if (found) return found;
+  throw new Error('Admission not found');
 }
 
 export async function createAdmission(data: {
-  patientId: string; wardId: string; bedId: string;
+  patientId: string; bedId: string; wardId: string;
   admittingDoctorId: string; admissionDate: string;
   expectedDischargeDate?: string; diagnosis?: string;
 }): Promise<Admission> {
   const payload = {
     patient_id: data.patientId,
-    ward_id: data.wardId,
     bed_id: data.bedId,
-    admitting_doctor_id: data.admittingDoctorId,
-    admission_date: data.admissionDate,
-    expected_discharge_date: data.expectedDischargeDate,
-    primary_diagnosis: data.diagnosis,
+    doctor_id: data.admittingDoctorId,
+    admission_reason: data.diagnosis || 'General admission',
+    admission_type: 'Planned',
+    chief_complaint: data.diagnosis,
+    expected_stay_days: data.expectedDischargeDate
+      ? Math.ceil((new Date(data.expectedDischargeDate).getTime() - new Date(data.admissionDate).getTime()) / 86400000)
+      : undefined,
   };
-  const response = await api.post<{ status: string; data: P3Admission }>('/admissions', payload);
-  return adaptAdmission(response.data.data);
-}
-
-export async function transferPatient(admissionId: string, data: {
-  bedId: string; wardId: string; reason?: string;
-}): Promise<Admission> {
-  const payload = {
-    new_bed_id: data.bedId,
-    new_ward_id: data.wardId,
-    transfer_reason: data.reason,
-  };
-  const response = await api.post<{ status: string; data: P3Admission }>(
-    `/admissions/${admissionId}/transfer`, payload
-  );
+  const response = await api.post<{ success: boolean; data: P2Admission }>('/wards/admissions', payload);
   return adaptAdmission(response.data.data);
 }
 
 export async function dischargePatient(admissionId: string, data: {
   dischargedByDoctorId: string; dischargeNotes?: string;
 }): Promise<Admission> {
-  const payload = {
-    discharged_by_doctor_id: data.dischargedByDoctorId,
-    discharge_notes: data.dischargeNotes,
-  };
-  const response = await api.post<{ status: string; data: P3Admission }>(
-    `/admissions/${admissionId}/discharge`, payload
+  const response = await api.put<{ success: boolean; data: P2Admission }>(
+    `/wards/admissions/${admissionId}/discharge`,
+    { discharge_reason: data.dischargeNotes, notes: data.dischargeNotes }
   );
   return adaptAdmission(response.data.data);
+}
+
+export async function transferPatient(admissionId: string, data: {
+  bedId: string; wardId: string; reason?: string;
+}): Promise<Admission> {
+  const response = await api.put<{ success: boolean; data: P2Admission }>(
+    `/wards/admissions/${admissionId}/transfer`,
+    { new_bed_id: data.bedId, transfer_reason: data.reason }
+  );
+  return adaptAdmission(response.data.data);
+}
+
+export async function createWard(data: {
+  name: string; wardType: string; totalBeds: number; description?: string;
+}): Promise<Ward> {
+  const response = await api.post<{ success: boolean; data: P2Ward }>('/wards', {
+    name: data.name,
+    ward_type: data.wardType,
+    total_beds: data.totalBeds,
+    description: data.description,
+  });
+  return adaptWard(response.data.data);
+}
+
+export async function createRoom(wardId: string, data: {
+  roomNumber: string; roomType: string; totalBeds: number;
+}): Promise<P2Room> {
+  const response = await api.post<{ success: boolean; data: P2Room }>(`/wards/${wardId}/rooms`, {
+    room_number: data.roomNumber,
+    room_type: data.roomType,
+    total_beds: data.totalBeds,
+  });
+  return response.data.data;
+}
+
+export async function createBed(wardId: string, roomId: string, bedNumber: string): Promise<Bed> {
+  const response = await api.post<{ success: boolean; data: P2Bed }>(
+    `/wards/${wardId}/rooms/${roomId}/beds`,
+    { bed_number: bedNumber }
+  );
+  return adaptBed({ ...response.data.data, ward_id: wardId });
+}
+
+export async function getOccupancyReport(): Promise<OccupancyReport> {
+  const wards = await getWards();
+  const totalBeds = wards.reduce((s, w) => s + w.totalBeds, 0);
+  const availableBeds = wards.reduce((s, w) => s + w.availableBeds, 0);
+  const occupiedBeds = totalBeds - availableBeds;
+  return {
+    summary: {
+      total_wards: wards.length,
+      total_beds: totalBeds,
+      available_beds: availableBeds,
+      occupied_beds: occupiedBeds,
+      overall_occupancy_pct: totalBeds > 0 ? parseFloat(((occupiedBeds / totalBeds) * 100).toFixed(1)) : 0,
+    },
+    wards: wards.map((w) => ({
+      ward_id: w.id,
+      ward_name: w.wardName,
+      ward_type: w.wardType,
+      total_beds: w.totalBeds,
+      available_beds: w.availableBeds,
+      occupied_beds: w.occupiedBeds,
+      occupancy_pct: w.totalBeds > 0 ? parseFloat(((w.occupiedBeds / w.totalBeds) * 100).toFixed(1)) : 0,
+    })),
+  };
 }

@@ -14,6 +14,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Alert from '../../components/Alert';
+import { getAvailableSlots } from '../../services/appointmentService';
 
 function generateSlots(): string[] {
   const slots: string[] = [];
@@ -65,6 +66,8 @@ export default function BookAppointment() {
   const [doctorId, setDoctorId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+const [slotsLoading, setSlotsLoading] = useState(false);
   const [reason, setReason] = useState('');
 
   useEffect(() => {
@@ -73,6 +76,14 @@ export default function BookAppointment() {
       .catch(() => setError('Could not load booking data'))
       .finally(() => setIsLoading(false));
   }, [isStaff]);
+  useEffect(() => {
+  if (!doctorId || !date) { setAvailableSlots([]); return; }
+  setSlotsLoading(true);
+  getAvailableSlots(doctorId, date)
+    .then((slots) => setAvailableSlots(slots.map((s) => s.start_time)))
+    .catch(() => setAvailableSlots([]))
+    .finally(() => setSlotsLoading(false));
+}, [doctorId, date]);
 
   const selectedDoctor = doctors.find((d) => String(d.id) === doctorId);
   const selectedPatient = patients.find((p) => String(p.id) === patientId);
@@ -91,7 +102,29 @@ export default function BookAppointment() {
     if (currentStep === 'patient') return !!patientId;
     if (currentStep === 'doctor') return !!doctorId;
     if (currentStep === 'date') return !!date;
-    if (currentStep === 'time') return !!time;
+  {currentStep === 'time' && (
+  <div>
+    <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Select time</h2>
+    {slotsLoading && <p className="text-gray-500 text-sm">Loading available slots...</p>}
+    {!slotsLoading && availableSlots.length === 0 && (
+      <Alert variant="warning">No available slots for this doctor on this date. Try a different date.</Alert>
+    )}
+    {!slotsLoading && availableSlots.length > 0 && (
+      <div className="grid grid-cols-4 gap-2">
+        {availableSlots.map((slot) => (
+          <button key={slot} onClick={() => setTime(slot)}
+            className={`py-2 rounded-lg text-sm border transition ${
+              time === slot
+                ? 'border-primary bg-primary text-white'
+                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:text-gray-200'
+            }`}>
+            {slot}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
     return true;
   }
 
@@ -103,23 +136,26 @@ export default function BookAppointment() {
     if (stepIndex > 0) setStepIndex(stepIndex - 1);
   }
 
-  async function handleConfirm() {
-    setError('');
-    setIsSubmitting(true);
-    try {
-      const entry = await createAppointment({
-        patientId: Number(patientId),
-        doctorId: Number(doctorId),
-        date, time, reason,
-        status: 'scheduled',
-      });
-      setConfirmed(entry);
-    } catch {
-      setError('Could not book the appointment — please try again');
-    } finally {
-      setIsSubmitting(false);
-    }
+ async function handleConfirm() {
+  setError('');
+  setIsSubmitting(true);
+  try {
+    const entry = await createAppointment({
+      patientId: patientId,
+      doctorId: doctorId,
+      date,
+      time,
+      reason,
+      appointmentType: 'Consultation',
+      status: 'scheduled',
+    });
+    setConfirmed(entry);
+  } catch {
+    setError('Could not book the appointment — please try again');
+  } finally {
+    setIsSubmitting(false);
   }
+}
 
   if (isLoading) return <Layout><p className="text-gray-500">Loading...</p></Layout>;
 

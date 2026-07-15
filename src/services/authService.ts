@@ -1,7 +1,7 @@
-import { authApi } from './api';
-import type { LoginResponse, RegisterRequest, ForgotPasswordRequest, VerifyOtpRequest, ResetPasswordRequest } from '../types/auth';
+import api from './api';
+import type { LoginResponse, RegisterRequest } from '../types/auth';
 
-interface P2LoginResponse {
+interface P2AuthResponse {
   success: boolean;
   data: {
     token: string;
@@ -11,51 +11,56 @@ interface P2LoginResponse {
       firstName: string;
       lastName: string;
       role: string;
+      hospitalId?: string;
     };
   };
 }
 
-function adaptLoginResponse(p2: P2LoginResponse): LoginResponse {
-  const { user } = p2.data;
+function adaptResponse(res: P2AuthResponse): LoginResponse {
+  const { user } = res.data;
+  // Store hospital ID so every subsequent request sends the header
+  if (user.hospitalId) {
+    localStorage.setItem('hospitalId', user.hospitalId);
+  }
   return {
-    token: p2.data.token,
+    token: res.data.token,
     user: {
       id: user.id,
       name: `${user.firstName} ${user.lastName}`.trim(),
       email: user.email,
       role: user.role,
+      hospitalId: user.hospitalId,
     },
   };
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const response = await authApi.post<P2LoginResponse>('/auth/login', { email, password });
-  return adaptLoginResponse(response.data);
+  const response = await api.post<P2AuthResponse>('/auth/login', { email, password });
+  return adaptResponse(response.data);
 }
 
 export async function register(data: RegisterRequest): Promise<LoginResponse> {
-  // Person 2 register takes firstName+lastName, not a single name
   const [firstName, ...rest] = data.name.split(' ');
   const lastName = rest.join(' ') || firstName;
-  const response = await authApi.post<P2LoginResponse>('/auth/register', {
+  const response = await api.post<P2AuthResponse>('/auth/register', {
     email: data.email,
     password: data.password,
     phone: data.phone,
     firstName,
     lastName,
-    role: 'patient',
+    role: 'staff',
   });
-  return adaptLoginResponse(response.data);
+  return adaptResponse(response.data);
 }
 
-export async function forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-  await authApi.post('/auth/forgot-password', data);
+export async function forgotPassword(data: { email: string }): Promise<void> {
+  await api.post('/auth/forgot-password', data);
 }
 
-export async function verifyOtp(data: VerifyOtpRequest): Promise<void> {
-  await authApi.post('/auth/verify-otp', data);
+export async function verifyOtp(data: { email: string; otp: string }): Promise<void> {
+  await api.post('/auth/verify-otp', data);
 }
 
-export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
-  await authApi.post('/auth/reset-password', data);
+export async function resetPassword(data: { email: string; otp: string; newPassword: string }): Promise<void> {
+  await api.post('/auth/reset-password', data);
 }

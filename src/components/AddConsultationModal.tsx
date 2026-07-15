@@ -1,47 +1,98 @@
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { createConsultation, recordVitals } from '../services/ehrService';
 import Modal from './Modal';
 import Input from './Input';
 import Button from './Button';
-import type { Prescription, Vitals } from '../types/appointment';
+import Alert from './Alert';
 
 interface AddConsultationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { chiefComplaint: string; diagnosis: string; vitals: Vitals; prescriptions: Prescription[] }) => Promise<void>;
+  appointmentId: string;
+  patientId: string;
+  doctorId: string;
+  onSaved: () => void;
 }
 
-export default function AddConsultationModal({ isOpen, onClose, onSave }: AddConsultationModalProps) {
+interface MedItem {
+  medicine: string;
+  dosage: string;
+  frequency: string;
+}
+
+export default function AddConsultationModal({
+  isOpen, onClose, appointmentId, patientId, doctorId, onSaved,
+}: AddConsultationModalProps) {
   const [chiefComplaint, setChiefComplaint] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
-  const [bp, setBp] = useState('');
+  const [assessment, setAssessment] = useState('');
+  const [plan, setPlan] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Vitals
   const [temperature, setTemperature] = useState('');
-  const [weight, setWeight] = useState('');
+  const [bpSystolic, setBpSystolic] = useState('');
+  const [bpDiastolic, setBpDiastolic] = useState('');
+  const [heartRate, setHeartRate] = useState('');
   const [oxygen, setOxygen] = useState('');
-  const [prescriptions, setPrescriptions] = useState<Prescription[]>([{ medicine: '', dosage: '', frequency: '' }]);
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+
+  const [medicines, setMedicines] = useState<MedItem[]>([{ medicine: '', dosage: '', frequency: '' }]);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  function updatePrescription(index: number, field: keyof Prescription, value: string) {
-    setPrescriptions((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  function updateMedicine(index: number, field: keyof MedItem, value: string) {
+    setMedicines((prev) => prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
   }
 
-  function addPrescriptionRow() {
-    setPrescriptions((prev) => [...prev, { medicine: '', dosage: '', frequency: '' }]);
+  function addMedicine() {
+    setMedicines((prev) => [...prev, { medicine: '', dosage: '', frequency: '' }]);
   }
 
-  function removePrescriptionRow(index: number) {
-    setPrescriptions((prev) => prev.filter((_, i) => i !== index));
+  function removeMedicine(index: number) {
+    setMedicines((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSave() {
+    if (!chiefComplaint.trim()) {
+      setError('Chief complaint is required');
+      return;
+    }
+    setError('');
     setIsSaving(true);
     try {
-      await onSave({
-        chiefComplaint, diagnosis,
-        vitals: { bp, temperature, weight, oxygen },
-        prescriptions: prescriptions.filter((p) => p.medicine.trim()),
+      // Step 1: Create consultation record
+      const consultation = await createConsultation({
+        patientId,
+        doctorId,
+        appointmentId,
+        chiefComplaint: chiefComplaint.trim(),
+        assessment: assessment.trim() || undefined,
+        plan: plan.trim() || undefined,
+        notes: notes.trim() || undefined,
       });
+
+      // Step 2: Record vitals if any were entered
+      const hasVitals = temperature || bpSystolic || heartRate || oxygen || weight;
+      if (hasVitals) {
+        await recordVitals({
+          patientId,
+          consultationId: consultation.id,
+          temperatureCelsius: temperature ? Number(temperature) : undefined,
+          bloodPressureSystolic: bpSystolic ? Number(bpSystolic) : undefined,
+          bloodPressureDiastolic: bpDiastolic ? Number(bpDiastolic) : undefined,
+          heartRateBpm: heartRate ? Number(heartRate) : undefined,
+          oxygenSaturationPercent: oxygen ? Number(oxygen) : undefined,
+          weightKg: weight ? Number(weight) : undefined,
+          heightCm: height ? Number(height) : undefined,
+        });
+      }
+
+      onSaved();
       onClose();
+    } catch (err) {
+      setError('Could not save consultation — please try again');
     } finally {
       setIsSaving(false);
     }
@@ -49,35 +100,38 @@ export default function AddConsultationModal({ isOpen, onClose, onSave }: AddCon
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add consultation notes">
-      <Input label="Chief complaint" value={chiefComplaint} onChange={setChiefComplaint} placeholder="What brought the patient in" />
-      <Input label="Diagnosis" value={diagnosis} onChange={setDiagnosis} />
+      {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
 
-      <p className="text-sm font-medium text-gray-700 mb-2 mt-2">Vitals</p>
-      <div className="grid grid-cols-2 gap-2 mb-2">
-        <Input label="Blood pressure" value={bp} onChange={setBp} placeholder="120/80" />
-        <Input label="Temperature" value={temperature} onChange={setTemperature} placeholder="98.6°F" />
-        <Input label="Weight" value={weight} onChange={setWeight} placeholder="70kg" />
-        <Input label="Oxygen (SpO2)" value={oxygen} onChange={setOxygen} placeholder="98%" />
+      <Input
+        label="Chief complaint *"
+        value={chiefComplaint}
+        onChange={setChiefComplaint}
+        placeholder="What brought the patient in"
+      />
+      <Input label="Assessment / Diagnosis" value={assessment} onChange={setAssessment} />
+      <Input label="Plan / Treatment" value={plan} onChange={setPlan} />
+      <Input label="Notes" value={notes} onChange={setNotes} placeholder="Any additional notes" />
+
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-3 mb-2">Vitals (optional)</p>
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <Input label="Temperature (°C)" value={temperature} onChange={setTemperature} type="number" placeholder="37.0" />
+        <Input label="BP Systolic (mmHg)" value={bpSystolic} onChange={setBpSystolic} type="number" placeholder="120" />
+        <Input label="BP Diastolic (mmHg)" value={bpDiastolic} onChange={setBpDiastolic} type="number" placeholder="80" />
+        <Input label="Heart rate (bpm)" value={heartRate} onChange={setHeartRate} type="number" placeholder="72" />
+        <Input label="SpO2 (%)" value={oxygen} onChange={setOxygen} type="number" placeholder="98" />
+        <Input label="Weight (kg)" value={weight} onChange={setWeight} type="number" placeholder="70" />
+        <Input label="Height (cm)" value={height} onChange={setHeight} type="number" placeholder="175" />
       </div>
 
-      <p className="text-sm font-medium text-gray-700 mb-2 mt-2">Prescriptions</p>
-      <div className="space-y-2 mb-2">
-        {prescriptions.map((p, i) => (
-          <div key={i} className="flex gap-2 items-end">
-            <div className="flex-1"><Input label="Medicine" value={p.medicine} onChange={(v) => updatePrescription(i, 'medicine', v)} /></div>
-            <div className="w-24"><Input label="Dosage" value={p.dosage} onChange={(v) => updatePrescription(i, 'dosage', v)} /></div>
-            <div className="w-28"><Input label="Frequency" value={p.frequency} onChange={(v) => updatePrescription(i, 'frequency', v)} /></div>
-            <button onClick={() => removePrescriptionRow(i)} className="text-gray-400 hover:text-danger mb-4" aria-label="Remove">
-              <Trash2 size={16} />
-            </button>
-          </div>
-        ))}
+      <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+        <p className="text-xs text-amber-800 dark:text-amber-300">
+          <strong>Note:</strong> To add prescriptions, open the consultation record after saving and add them from there. Prescriptions require the consultation ID from this saved record.
+        </p>
       </div>
-      <button onClick={addPrescriptionRow} className="text-sm text-primary font-medium flex items-center gap-1 mb-4">
-        <Plus size={14} />Add medicine
-      </button>
 
-      <Button onClick={handleSave} disabled={isSaving} fullWidth>{isSaving ? 'Saving...' : 'Save & mark completed'}</Button>
+      <Button onClick={handleSave} disabled={isSaving} fullWidth>
+        {isSaving ? 'Saving consultation...' : 'Save & mark completed'}
+      </Button>
     </Modal>
   );
 }

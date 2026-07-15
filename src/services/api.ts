@@ -1,40 +1,37 @@
 import axios from 'axios';
 
-// Two separate axios instances — one per backend
-const authApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL_AUTH,
-  headers: { 'Content-Type': 'application/json' },
-});
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach token to both
-function attachToken(config: import('axios').InternalAxiosRequestConfig) {
+// Attach auth token + hospital ID header to every request
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  const hospitalId = localStorage.getItem('hospitalId')
+    || import.meta.env.VITE_HOSPITAL_ID;
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  return config;
-}
-
-authApi.interceptors.request.use(attachToken);
-api.interceptors.request.use(attachToken);
-
-// Auto-logout on 401 from either
-function handle401(error: unknown) {
-  if (axios.isAxiosError(error) && error.response?.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+  if (hospitalId) {
+    config.headers['x-hospital-id'] = hospitalId;
   }
-  return Promise.reject(error);
-}
+  return config;
+});
 
-authApi.interceptors.response.use((r) => r, handle401);
-api.interceptors.response.use((r) => r, handle401);
+// Auto-logout on 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('hospitalId');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
-export { authApi };
 export default api;

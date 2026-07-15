@@ -9,6 +9,7 @@ import type { Invoice } from '../../types/billing';
 import Layout from '../../components/Layout';
 import Card from '../../components/Card';
 import Alert from '../../components/Alert';
+import { getBillingSummary } from '../../services/billingService';
 
 function groupByMonth<T>(items: T[], getDate: (item: T) => string, getValue: (item: T) => number) {
   const map = new Map<string, number>();
@@ -23,12 +24,21 @@ export default function AdminAnalytics() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [billingSummary, setBillingSummary] = useState<{
+  totalInvoices: number; paidAmount: number; pendingAmount: number; totalAmount: number;
+} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    Promise.all([getPatients(), getAppointments(), getInvoices()])
-      .then(([p, a, i]) => { setPatients(p); setAppointments(a); setInvoices(i); })
+    const today = new Date();
+const dateFrom = `${today.getFullYear()}-01-01`;
+const dateTo = today.toISOString().split('T')[0];
+
+Promise.all([getPatients(), getAppointments(), getInvoices(), getBillingSummary(dateFrom, dateTo)])
+  .then(([p, a, i, summary]) => {
+    setPatients(p); setAppointments(a); setInvoices(i); setBillingSummary(summary);
+  })
       .catch(() => setError('Could not load analytics data'))
       .finally(() => setIsLoading(false));
   }, []);
@@ -88,6 +98,28 @@ export default function AdminAnalytics() {
             </ResponsiveContainer>
           </div>
         </Card>
+        {billingSummary && (
+  <Card>
+    <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Revenue summary (this year)</h2>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <p className="text-xs text-gray-400 mb-1">Collected</p>
+        <p className="text-lg font-mono font-semibold text-green-800 dark:text-green-300">
+          ₹{billingSummary.paidAmount.toLocaleString('en-IN')}
+        </p>
+      </div>
+      <div className="text-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+        <p className="text-xs text-gray-400 mb-1">Outstanding</p>
+        <p className="text-lg font-mono font-semibold text-amber-800 dark:text-amber-300">
+          ₹{billingSummary.pendingAmount.toLocaleString('en-IN')}
+        </p>
+      </div>
+    </div>
+    <p className="text-xs text-gray-400 text-center mt-3">
+      {billingSummary.totalInvoices} invoices · ₹{billingSummary.totalAmount.toLocaleString('en-IN')} total billed
+    </p>
+  </Card>
+)}
       </div>
     </Layout>
   );

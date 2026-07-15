@@ -1,25 +1,37 @@
 export interface Patient {
   id: string;
+  medicalRecordNumber: string;
   name: string;
   age: number;
-  gender: 'male' | 'female' | 'other';
+  dateOfBirth: string;
+  gender: 'Male' | 'Female' | 'Other';
   phone: string;
+  email?: string;
   bloodGroup: string;
   address: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
   status: 'admitted' | 'discharged' | 'outpatient';
-  hospitalId?: number;
+  hospitalId?: string;
   registeredAt?: string;
   isActive?: boolean;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
 }
 
 export interface PatientListResponse { patients: Patient[]; }
 export interface PatientResponse { patient: Patient; }
 export interface CreatePatientRequest {
-  name: string; age: number; gender: 'male' | 'female' | 'other';
-  phone: string; bloodGroup: string; address: string;
+  name: string;
+  age: number;
+  gender: 'Male' | 'Female' | 'Other';
+  phone: string;
+  bloodGroup: string;
+  address: string;
   status: 'admitted' | 'discharged' | 'outpatient';
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
 }
