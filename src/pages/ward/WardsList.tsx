@@ -10,13 +10,14 @@ import StatCard from '../../components/StatCard';
 import { TableSkeleton } from '../../components/Skeleton';
 
 const WARD_TYPE_COLORS: Record<string, string> = {
-  general: 'bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300',
-  icu: 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300',
-  emergency: 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300',
-  maternity: 'bg-pink-50 dark:bg-pink-900/20 text-pink-800 dark:text-pink-300',
-  pediatric: 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
-  surgical: 'bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300',
-  psychiatric: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300',
+  General: 'bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300',
+  ICU: 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300',
+  Pediatrics: 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
+  Maternity: 'bg-pink-50 dark:bg-pink-900/20 text-pink-800 dark:text-pink-300',
+  Surgery: 'bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300',
+  Cardiology: 'bg-rose-50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-300',
+  Oncology: 'bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300',
+  Neurology: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300',
 };
 
 function OccupancyBar({ pct }: { pct: number }) {

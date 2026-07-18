@@ -13,12 +13,10 @@ export default function PharmacyStock() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    getPharmacyStock()
-      .then(setStock)
-      .catch(() => setError('Could not load pharmacy stock'))
-      .finally(() => setIsLoading(false));
-  }, []);
+useEffect(() => {
+  setIsLoading(false);
+  setError('Pharmacy stock is not yet available — the backend endpoint is pending implementation.');
+}, []);
 
   const lowStockCount = useMemo(() => stock.filter((s) => s.status === 'low-stock').length, [stock]);
   const outOfStockCount = useMemo(() => stock.filter((s) => s.status === 'out-of-stock').length, [stock]);

@@ -73,8 +73,7 @@ function adaptWard(w: P2Ward): Ward {
     id: w.ward_id,
     wardCode: w.ward_id.slice(0, 8).toUpperCase(),
     wardName: w.name,
-    wardType: w.ward_type.toLowerCase() as Ward['wardType'],
-    totalBeds: w.total_beds,
+wardType: w.ward_type as Ward['wardType'],    totalBeds: w.total_beds,
     availableBeds: w.available_beds,
     occupiedBeds: w.total_beds - w.available_beds,
     isActive: w.status === 'Active',
@@ -162,8 +161,9 @@ export async function getAdmissionById(id: string): Promise<Admission> {
 }
 
 export async function createAdmission(data: {
-  patientId: string; bedId: string; wardId: string;
+  patientId: string; wardId: string; bedId: string;
   admittingDoctorId: string; admissionDate: string;
+  admissionType?: string;
   expectedDischargeDate?: string; diagnosis?: string;
 }): Promise<Admission> {
   const payload = {
@@ -171,7 +171,7 @@ export async function createAdmission(data: {
     bed_id: data.bedId,
     doctor_id: data.admittingDoctorId,
     admission_reason: data.diagnosis || 'General admission',
-    admission_type: 'Planned',
+    admission_type: data.admissionType || 'Planned',
     chief_complaint: data.diagnosis,
     expected_stay_days: data.expectedDischargeDate
       ? Math.ceil((new Date(data.expectedDischargeDate).getTime() - new Date(data.admissionDate).getTime()) / 86400000)

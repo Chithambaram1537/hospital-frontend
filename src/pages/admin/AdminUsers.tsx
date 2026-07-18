@@ -11,9 +11,13 @@ import Select from '../../components/Select';
 import Button from '../../components/Button';
 
 const ROLE_OPTIONS = [
-  { value: 'admin', label: 'Admin' },
+  { value: 'admin', label: 'Administrator' },
   { value: 'doctor', label: 'Doctor' },
-  { value: 'receptionist', label: 'Receptionist' },
+  { value: 'nurse', label: 'Nurse' },
+  { value: 'pharmacist', label: 'Pharmacist' },
+  { value: 'accountant', label: 'Accountant' },
+  { value: 'lab_technician', label: 'Lab Technician' },
+  { value: 'staff', label: 'Staff' },
 ];
 
 export default function AdminUsers() {

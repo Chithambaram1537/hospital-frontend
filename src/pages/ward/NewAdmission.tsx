@@ -24,6 +24,12 @@ interface Room {
   total_beds: number;
 }
 
+const ADMISSION_TYPES = [
+  { value: 'Planned', label: 'Planned' },
+  { value: 'Emergency', label: 'Emergency' },
+  { value: 'Transfer', label: 'Transfer' },
+];
+
 export default function NewAdmission() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -46,6 +52,7 @@ export default function NewAdmission() {
   const [roomId, setRoomId] = useState('');
   const [bedId, setBedId] = useState(prefilledBedId);
   const [doctorId, setDoctorId] = useState('');
+  const [admissionType, setAdmissionType] = useState('Planned');
   const [admissionDate, setAdmissionDate] = useState(todayString());
   const [expectedDischargeDate, setExpectedDischargeDate] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
@@ -58,7 +65,11 @@ export default function NewAdmission() {
   }, []);
 
   useEffect(() => {
-    if (!wardId) { setRooms([]); setRoomId(''); setBeds([]); setBedId(''); return; }
+    if (!wardId) {
+      setRooms([]); setRoomId('');
+      setBeds([]); setBedId('');
+      return;
+    }
     setIsLoadingRooms(true);
     getRoomsForWard(wardId)
       .then(setRooms)
@@ -67,10 +78,15 @@ export default function NewAdmission() {
   }, [wardId]);
 
   useEffect(() => {
-    if (!wardId || !roomId) { setBeds([]); setBedId(''); return; }
+    if (!wardId || !roomId) {
+      setBeds([]); setBedId('');
+      return;
+    }
     setIsLoadingBeds(true);
-    getBedsForWard(wardId, 'Available')
-      .then((allBeds) => setBeds(allBeds.filter((b) => b.status === 'Available' || b.status === 'available')))
+    getBedsForWard(wardId)
+      .then((allBeds) =>
+        setBeds(allBeds.filter((b) => b.status.toLowerCase() === 'available'))
+      )
       .catch(() => setError('Could not load beds for this room'))
       .finally(() => setIsLoadingBeds(false));
   }, [wardId, roomId]);
@@ -90,6 +106,7 @@ export default function NewAdmission() {
         bedId,
         admittingDoctorId: doctorId,
         admissionDate,
+        admissionType,
         expectedDischargeDate: expectedDischargeDate || undefined,
         diagnosis: diagnosis || undefined,
       });
@@ -105,10 +122,13 @@ export default function NewAdmission() {
 
   return (
     <Layout>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Admit patient</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+        Admit patient
+      </h1>
       <Card>
         {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
         <form onSubmit={handleSubmit}>
+
           <Select
             label="Patient *"
             value={patientId}
@@ -124,14 +144,21 @@ export default function NewAdmission() {
             onChange={(v) => { setWardId(v); setRoomId(''); setBedId(''); }}
             options={wards
               .filter((w) => w.isActive && w.availableBeds > 0)
-              .map((w) => ({ value: w.id, label: `${w.wardName} (${w.availableBeds} beds available)` }))}
+              .map((w) => ({
+                value: w.id,
+                label: `${w.wardName} (${w.availableBeds} beds available)`,
+              }))}
           />
 
           {wardId && (
             <>
-              {isLoadingRooms && <p className="text-sm text-gray-500 mb-4">Loading rooms...</p>}
+              {isLoadingRooms && (
+                <p className="text-sm text-gray-500 mb-4">Loading rooms...</p>
+              )}
               {!isLoadingRooms && rooms.length === 0 && (
-                <div className="mb-4"><Alert variant="warning">No rooms in this ward yet.</Alert></div>
+                <div className="mb-4">
+                  <Alert variant="warning">No rooms in this ward yet.</Alert>
+                </div>
               )}
               {!isLoadingRooms && rooms.length > 0 && (
                 <Select
@@ -151,16 +178,23 @@ export default function NewAdmission() {
 
           {roomId && (
             <>
-              {isLoadingBeds && <p className="text-sm text-gray-500 mb-4">Loading beds...</p>}
+              {isLoadingBeds && (
+                <p className="text-sm text-gray-500 mb-4">Loading beds...</p>
+              )}
               {!isLoadingBeds && beds.length === 0 && (
-                <div className="mb-4"><Alert variant="warning">No available beds in this room.</Alert></div>
+                <div className="mb-4">
+                  <Alert variant="warning">No available beds in this room.</Alert>
+                </div>
               )}
               {!isLoadingBeds && beds.length > 0 && (
                 <Select
                   label="Bed *"
                   value={bedId}
                   onChange={setBedId}
-                  options={beds.map((b) => ({ value: b.id, label: `Bed ${b.bedNumber}` }))}
+                  options={beds.map((b) => ({
+                    value: b.id,
+                    label: `Bed ${b.bedNumber}`,
+                  }))}
                 />
               )}
             </>
@@ -170,18 +204,58 @@ export default function NewAdmission() {
             label="Admitting doctor *"
             value={doctorId}
             onChange={setDoctorId}
-            options={doctors.map((d) => ({ value: d.id, label: `${d.name} (${d.specialty})` }))}
+            options={doctors.map((d) => ({
+              value: d.id,
+              label: `${d.name} (${d.specialty})`,
+            }))}
           />
 
-          <Input label="Admission date" type="date" value={admissionDate} onChange={setAdmissionDate} min={todayString()} />
-          <Input label="Expected discharge date" type="date" value={expectedDischargeDate} onChange={setExpectedDischargeDate} min={admissionDate} />
-          <Input label="Primary diagnosis / admission reason" value={diagnosis} onChange={setDiagnosis} placeholder="Brief description of condition" />
+          <Select
+            label="Admission type *"
+            value={admissionType}
+            onChange={setAdmissionType}
+            options={ADMISSION_TYPES}
+          />
+
+          <Input
+            label="Admission date"
+            type="date"
+            value={admissionDate}
+            onChange={setAdmissionDate}
+            min={todayString()}
+          />
+          <Input
+            label="Expected discharge date"
+            type="date"
+            value={expectedDischargeDate}
+            onChange={setExpectedDischargeDate}
+            min={admissionDate}
+          />
+          <Input
+            label="Primary diagnosis / admission reason"
+            value={diagnosis}
+            onChange={setDiagnosis}
+            placeholder="Brief description of condition"
+          />
 
           <div className="flex gap-2 mt-2">
-            <Button variant="secondary" type="button" onClick={() => navigate('/admissions')}>Cancel</Button>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => navigate('/admissions')}
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !patientId || !wardId || !roomId || !bedId || !doctorId}
+              disabled={
+                isSubmitting ||
+                !patientId ||
+                !wardId ||
+                !roomId ||
+                !bedId ||
+                !doctorId
+              }
             >
               {isSubmitting ? 'Admitting...' : 'Admit patient'}
             </Button>

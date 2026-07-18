@@ -1,24 +1,25 @@
 import api from './api';
 import type { LoginResponse, RegisterRequest } from '../types/auth';
 
+interface P2AuthData {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    hospitalId?: string;
+  };
+}
+
 interface P2AuthResponse {
   success: boolean;
-  data: {
-    token: string;
-    user: {
-      id: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-      role: string;
-      hospitalId?: string;
-    };
-  };
+  data: P2AuthData;
 }
 
 function adaptResponse(res: P2AuthResponse): LoginResponse {
   const { user } = res.data;
-  // Store hospital ID so every subsequent request sends the header
   if (user.hospitalId) {
     localStorage.setItem('hospitalId', user.hospitalId);
   }

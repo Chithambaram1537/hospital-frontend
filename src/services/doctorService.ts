@@ -28,9 +28,8 @@ interface P2SingleResponse {
 }
 
 function adaptDoctor(d: P2Doctor): Doctor {
-  const name = d.name
-    ?? `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim()
-    || 'Unknown doctor';
+  const fullName = `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim();
+const name = d.name || fullName || 'Unknown doctor';
   return {
     id: d.doctor_id,
     name,

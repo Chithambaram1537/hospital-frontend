@@ -46,8 +46,7 @@ import NewAdmission from './pages/ward/NewAdmission';
 import RoomsOverview from './pages/rooms/RoomsOverview';
 
 
-const STAFF = ['admin', 'doctor', 'nurse', 'pharmacist', 'accountant', 'lab_technician', 'staff'];export default function App() {
-  return (
+const STAFF = ['admin', 'doctor', 'nurse', 'pharmacist', 'accountant', 'lab_technician', 'staff']; 
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -112,5 +111,4 @@ const STAFF = ['admin', 'doctor', 'nurse', 'pharmacist', 'accountant', 'lab_tech
 <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
-  );
-}
+  

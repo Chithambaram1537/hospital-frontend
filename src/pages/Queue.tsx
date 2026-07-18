@@ -28,12 +28,11 @@ export default function Queue() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  useEffect(() => {
-    getQueue()
-      .then(setQueue)
-      .catch(() => setError('Could not load queue'))
-      .finally(() => setIsLoading(false));
-  }, []);
+useEffect(() => {
+  // Queue endpoint not yet available in backend
+  setIsLoading(false);
+  setError('Queue management is not yet available — the backend endpoint is pending implementation.');
+}, []);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
